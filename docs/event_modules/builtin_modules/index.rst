@@ -11,14 +11,8 @@ wishbone.input.cron
 
 --------
 
-wishbone.input.dictgenerator
-----------------------------
-.. autoclass:: wishbone.module.dictgenerator.DictGenerator
-
---------
-
 wishbone.input.inotify
--------------------
+----------------------
 .. autoclass:: wishbone.module.wb_inotify.Inotify
 
 --------
@@ -113,28 +107,3 @@ Function modules
 wishbone.function.modify
 ------------------------
 .. autoclass:: wishbone.module.modify.Modify
-
-
-
-Encode modules
-**************
-
-wishbone.encode.humanlogformat
-------------------------------
-.. autoclass:: wishbone.module.humanlogformat.HumanLogFormat
-
---------
-
-wishbone.encode.json
---------------------
-.. autoclass:: wishbone.module.jsonencode.JSONEncode
-
---------
-
-Decode modules
-**************
-
-wishbone.decode.json
---------------------
-.. autoclass:: wishbone.module.jsondecode.JSONDecode
-

@@ -37,17 +37,19 @@ class Mock(object):
             return Mock()
 
 
-MOCK_MODULES = ["gevent",  "gevent.lock", "gevent.pool", "gevent.fileobject", "gevent.server",
-                "gevent.hub", "gevent.wsgi", "gevent.queue", "gevent.event", "gevent.select", "requests",
-                "argparse", "greenlet", "jsonschema", "prettytable",
-                "python-daemon", "pyyaml", "event", "gevent.event", "lock", "gevent.lock",
-                "gevent.pool", "wishbone.tools", "gevent.fileobject", "gevent.server",
-                "amqp", "amqp.connection", "gevent.hub", "gevent.wsgi", "gevent.queue",
-                "flask", "ReadRulesDisk", "gevent_inotifyx", "amqp.exceptions", "Event",
-                "uplook", "UpLook", "msgpack", "zmq", "zmq.green", "grequests", "gevent.os", "make_nonblocking",
-                "uplook.errors", "pyjq", "arrow", "cffi", "colorama", "cronex", "functools32", "jsonschema",
-                "lockfile", "prettytable", "python-daemon", "python-dateutil", "PyYAML", "readline" ]
+# MOCK_MODULES = ["gevent", "gevent.lock", "gevent.pool", "gevent.fileobject", "gevent.server",
+#                 "gevent.hub", "gevent.wsgi", "gevent.queue", "gevent.event", "gevent.select", "requests",
+#                 "argparse", "greenlet", "jsonschema", "prettytable",
+#                 "python-daemon", "pyyaml", "event", "gevent.event", "lock", "gevent.lock",
+#                 "gevent.pool", "wishbone.tools", "gevent.fileobject", "gevent.server",
+#                 "amqp", "amqp.connection", "gevent.hub", "gevent.wsgi", "gevent.queue",
+#                 "flask", "ReadRulesDisk", "gevent_inotifyx", "amqp.exceptions", "Event",
+#                 "uplook", "UpLook", "msgpack", "zmq", "zmq.green", "grequests", "gevent.os", "make_nonblocking",
+#                 "uplook.errors", "pyjq", "arrow", "cffi", "colorama", "cronex", "functools32", "jsonschema",
+#                 "lockfile", "prettytable", "python-daemon", "python-dateutil", "PyYAML", "readline"]
 
+MOCK_MODULES = [
+]
 
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 

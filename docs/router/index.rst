@@ -73,9 +73,9 @@ Multiple routers can be initialized which run inside the same ``process``.
 
 
 
-Wishbone comes with the default :py:class:`wishbone.router.Default` router implementation.
+Wishbone comes with the default :py:class:`wishbone.router.default.Default` router implementation.
 
-.. autoclass:: wishbone.router.Default
+.. autoclass:: wishbone.router.default.Default
     :members:
 
 .. _gipc:

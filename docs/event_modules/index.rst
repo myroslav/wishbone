@@ -11,10 +11,10 @@ invoke each other's functionality.  They only interact by passing
 :py:class:`wishbone.event.Event` instances to each other's
 :py:class:`wishbone.Queue` queues from where the incoming events are consumed
 and processed by a function registered by
-:py:func:`wishbone.Actor.registerConsumer`.
+:py:func:`wishbone.actor.Actor.registerConsumer`.
 
 *Event modules* run as `Gevent greenlets`_ in the background and are created
-by inheriting :py:class:`wishbone.Actor` as a baseclass and live inside a
+by inheriting :py:class:`wishbone.actor.Actor` as a baseclass and live inside a
 :py:class:`wishbone.router.Default` instance.
 
 Modules typically have, but are not limited to an **inbox**, **outbox**,
@@ -28,11 +28,11 @@ A queue can only be connected to 1 single queue.
   can use the  :py:class:`wishbone.module.Fanout` and
   :py:class:`wishbone.module.Fanout` modules.
 
-The :py:class:`wishbone.Actor` baseclass must be initialized by passing a
-:py:class:`wishbone.actor.ActorConfig` instance which controls the behavior of
+The :py:class:`wishbone.actor.Actor` baseclass must be initialized by passing a
+:py:class:`wishbone.actor.Actor.ActorConfig` instance which controls the behavior of
 the module instance.
 
-.. autoclass:: wishbone.Actor
+.. autoclass:: wishbone.actor.Actor
     :members:
     :show-inheritance:
     :inherited-members:
@@ -60,11 +60,7 @@ from each of the modules' ``logs`` queue.
 
 .. code-block:: python
 
-    Log({'message': 'Received stop. Initiating shutdown.', 'module': 'metrics_graphite', 'pid': 18179, 'level': 6, 'time': 1454272074.556823})
-
-
-.. autoclass:: wishbone.event.Log
-
+# TODO(smetj): write about new style
 
 
 .. note::
@@ -88,14 +84,9 @@ connecting the necessary modules to collect and process the metric events from
 each of the modules' ``metrics`` queue.
 
 Metrics are generated at the interval determined by the
-:py:class:`wishbone.actor.ActorConfig` instance passed to the module.
+:py:class:`wishbone.actor.Actor.ActorConfig` instance passed to the module.
 
-
-.. autoclass:: wishbone.event.Metric
-
-::
-
-    Metric({'tags': (), 'unit': '', 'value': 0, 'name': 'module.input.queue.failed.size', 'source': 'server01', 'type': 'wishbone', 'time': 1454271176.479039})
+# TODO(smetj): Write about new style
 
 
 
