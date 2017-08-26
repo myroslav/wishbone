@@ -59,6 +59,7 @@ class RenderKwargs(object):
         self.env_template = jinja2.Environment(
             undefined=jinja2.StrictUndefined,
             trim_blocks=True,
+            loader=jinja2.FileSystemLoader('/')
         )
         self.env_template.globals.update(functions)
         self.__original_kwargs = data
@@ -77,11 +78,13 @@ class RenderKwargs(object):
         else:
             result = self.__lookup(key, self.__rendered_kwargs[queue_context])
             if result is None:
-                return ''
+                return None
             else:
                 return result
 
     def render(self, queue_context=None, event_content={}):
+        # TODO(smetj): opportunity to optimize here. Count number of templates and exit recursion when reached
+        # TODO(smetj): keep a list of references to the acctual templates and only render those
 
         def recurse(data):
 
@@ -99,8 +102,6 @@ class RenderKwargs(object):
                 for index, value in enumerate(data):
                     data[index] = recurse(value)
                 return data
-            elif data is None:
-                return ''
             else:
                 return data
 
@@ -152,13 +153,29 @@ class RenderKwargs(object):
 
 
 class Actor(object):
+    """A base class providing core Actor functionality.
+
+    The Actor base class is responsible for providing the base functionality,
+    setup and helper functions of a Wishbone module.
+
+    Args:
+        config (wishbone.actorconfig.ActorConfig): The ActorConfig object instance.
+
+    Attributes:
+        config (wishbone.actorconfig.ActorConfig): The ActorConfig object instance.
+        name (str): The name of the instance, derived from `config`.
+        description (str): The description of the actor based instance, derived from `config`.
+
+                pool (wishbone.pool.QueuePool): The Actor's queue pool.
+    Methods:
+        logging (wishbone.logging.Logging)
+
+    """
 
     def __init__(self, config):
 
         self.config = config
         self.name = config.name
-        self.size = config.size
-        self.frequency = config.frequency
         self.description = config.description
 
         self.pool = QueuePool(config.size)
@@ -242,7 +259,7 @@ class Actor(object):
                         "tags": ()
                     })
                     self.submit(event, "metrics")
-            sleep(self.frequency)
+            sleep(self.config.frequency)
 
     def postHook(self):
 
@@ -275,7 +292,12 @@ class Actor(object):
             self.preHook()
         self.__validateAppliedFunctions()
         self.__run.set()
-        self.logging.debug("Started with max queue size of %s events and metrics interval of %s seconds." % (self.size, self.frequency))
+        self.logging.debug(
+            "Started with max queue size of %s events and metrics interval of %s seconds." % (
+                self.config.size,
+                self.config.frequency
+            )
+        )
         self.stopped = False
 
     def sendToBackground(self, function, *args, **kwargs):
