@@ -90,7 +90,7 @@ class WBInotify(InputModule):
 
            |  A glob pattern to filter out only matching files.
 
-        - paths(dict)({"/tmp": ["IN_CREATE"]})
+        - paths(dict)({"/tmp": ["IN_CREATE", "IN_CLOSE_WRITE"]})
 
            |  A dict of paths with a list of inotify events to monitor.  When
            |  the list is empty no filtering is done and results into all
@@ -104,8 +104,9 @@ class WBInotify(InputModule):
 
     '''
 
-    def __init__(self, actor_config, initial_listing=True, glob_pattern="*", paths={"/tmp": ["IN_CREATE"]}):
+    def __init__(self, actor_config, initial_listing=True, glob_pattern="*", paths={"/tmp": ["IN_CREATE", "IN_CLOSE_WRITE"]}):
         Actor.__init__(self, actor_config)
+
         self.pool.createQueue("outbox")
         self.decode = Dummy().handler
 
