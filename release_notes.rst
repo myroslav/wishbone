@@ -20,6 +20,7 @@ Features:
 - Removed getting metrics from builtin webserver
 - Replaced wishbone.module.process.humanlogformat with template module
 - Removed @-prefix from default event fields
+- Added wishbone.module.flow.queueselect
 
 Bugfixes:
 
