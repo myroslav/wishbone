@@ -285,7 +285,7 @@ class Event(object):
 
         return d
 
-    def format(self, template, key="data"):
+    def render(self, template, key="data"):
         '''
         Returns a formatted string using the provided template and key
 
@@ -388,16 +388,3 @@ class Event(object):
             self.data["timestamp"] = time.time()
 
     raw = dump
-
-    def insertTemplates(self, data):
-
-        if isinstance(data, str):
-            return Template(data, undefined=SilentUndefined)
-        elif isinstance(data, dict):
-            for key, value in data.items():
-                data[key] = self.insertTemplates(value)
-        elif isinstance(data, list):
-            for index, value in enumerate(data):
-                data[index] = value
-
-        return data
