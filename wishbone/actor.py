@@ -48,7 +48,6 @@ Greenlets = namedtuple('Greenlets', "consumer generic log metric")
 
 
 class RenderKwargs(object):
-
     '''
     This object keeps the rendered kwargs using event content from
     different queues.
@@ -97,11 +96,12 @@ class RenderKwargs(object):
                 result = {}
                 for key, value in data.items():
                     result[key] = recurse(value)
-                return result
+                return EasyDict(result)
             elif isinstance(data, list):
-                for index, value in enumerate(data):
-                    data[index] = recurse(value)
-                return data
+                result = []
+                for value in data:
+                    result.append(recurse(value))
+                return result
             else:
                 return data
 
@@ -110,6 +110,7 @@ class RenderKwargs(object):
                 self.__template_kwargs.copy()
             )
         )
+
         self.__rendered_kwargs[queue_context] = rendered_kwargs
         return rendered_kwargs
 
@@ -133,7 +134,7 @@ class RenderKwargs(object):
             elif isinstance(data, list):
                 for index, value in enumerate(data):
                     data[index] = recurse(value)
-                return EasyDict(data)
+                return data
             else:
                 return data
 
@@ -355,7 +356,6 @@ class Actor(object):
         self.stopped = True
 
     def submit(self, event, queue):
-
         '''
         Submits <event> to the queue with name <queue>.
 
@@ -371,6 +371,9 @@ class Actor(object):
         while self.loop():
             try:
                 getattr(self.pool.queue, queue).put(event)
+                break
+            except AttributeError:
+                self.logging.error("No such queue %s. Event with uuid %s dropped." % (queue, event.get('uuid')))
                 break
             except QueueFull:
                 sleep(0.1)
@@ -401,7 +404,9 @@ class Actor(object):
             # Render kwargs relative to the event's content and make these accessible under event.kwargs
             event.kwargs = self.__renderKwargs.render(
                 queue_context=queue,
-                event_content=event.dump(complete=True)
+                event_content=event.dump(
+                    complete=True
+                )
             )
 
             # Validate TTL
@@ -440,7 +445,6 @@ class Actor(object):
                 self.logging.setCurrentEventID(None)
 
     def __generateEventWithPayload(self, data={}):
-
         '''
         Generates a new event with payload <data>.
         '''
@@ -448,7 +452,6 @@ class Actor(object):
         return Wishbone_Event(data)
 
     def __generateEvent(self, data={}):
-
         '''
         Generates a new event from <data>. <data> is supposed to contain the
         metadata fields too.
@@ -459,7 +462,6 @@ class Actor(object):
         return e
 
     def __validateAppliedFunctions(self):
-
         '''
         A validation routine which checks whether functions have been applied
         to queues without a registered consumer.  The effect of that would be
