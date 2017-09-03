@@ -118,7 +118,7 @@ class Acknowledge(FlowModule):
         if self.kwargs.ack_id is None:
             ack_id = self.generateID()
         else:
-            ack_id = event.format(self.kwargs.ack_id, '.')
+            ack_id = event.render(self.kwargs.ack_id, '.')
 
         if event.has("tmp.%s.ack_id" % (self.name)):
             self.logging.warning("Event arriving to <inbox> with tmp.%s.ack_id already set.  Perhaps that should have been the <acknowledge> queue instead." % (self.name))

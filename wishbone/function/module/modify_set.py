@@ -41,7 +41,7 @@ def modifySetWrapper(data, destination='data'):
 
         nonlocal data
         if isinstance(data, str):
-            data = event.format(data)
+            data = event.render(data)
 
         event.set(data, destination)
         return event
