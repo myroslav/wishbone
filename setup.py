@@ -138,7 +138,7 @@ setup(
         'wishbone.module.input': [
             'cron =  wishbone.module.cron:Cron',
             'inotify = wishbone.module.wb_inotify:WBInotify',
-            'testevent = wishbone.module.testevent:TestEvent',
+            'generator = wishbone.module.generator:Generator',
         ],
         'wishbone.module.output': [
             'null = wishbone.module.null:Null',
