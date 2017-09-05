@@ -296,9 +296,9 @@ class Event(object):
         '''
 
         try:
-            return template.render(**self.get(key))
-        except Exception:
-            return template
+            return Template(template).render(self.get(key))
+        except Exception as err:
+            raise InvalidData("Failed to render template. Reason: %s" % (err))
 
     def get(self, key="data"):
         '''
