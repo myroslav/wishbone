@@ -60,21 +60,25 @@ class StructuredDataFile():
         self.schema = schema
         self.expect_json = expect_json
         self.expect_yaml = expect_yaml
-        self.content = None
+        self.content = {}
         self.lock = Semaphore()
-        self.current_filename = None
 
     def delete(self, path):
         '''Deletes the file content from the object'''
 
+        abs_path = os.path.abspath(path)
+
         with self.lock:
-            self.content = None
+            if abs_path in self.content.keys():
+                del(self.content[abs_path])
 
     def dump(self):
-        '''Dumps the complete content'''
+        '''Dumps the complete cached content of all files
+        If multiple files are cached then a list is returned.
+        '''
 
         with self.lock:
-            if self.content is None:
+            if self.content is {}:
                 return self.default
             else:
                 return self.content
@@ -83,37 +87,36 @@ class StructuredDataFile():
         '''Returns the cached content of the file.  If the file isn't loaded yet, it
         tries to do that.'''
 
+        abs_path = os.path.abspath(path)
+
         with self.lock:
-            if self.content is None or os.path.abspath(path) != self.current_filename:
-                return self.__load(path)
-            else:
-                return self.content
+            if abs_path not in self.content.keys():
+                self.content[abs_path] = self.__load(abs_path)
+            return self.content[abs_path]
 
     def load(self, path):
         '''Loads the file into the module and validates the content when required.'''
 
+        abs_path = os.path.abspath(path)
         with self.lock:
-            return self.__load(os.path.abspath(path))
+            self.content[abs_path] = self.__load(abs_path)
 
-    def __load(self, path):
+    def __load(self, abs_path):
 
-        if os.path.exists(path) and os.access(path, os.R_OK):
-            if os.path.isfile(path):
-                self.__readFile(path)
+        if os.path.exists(abs_path) and os.access(abs_path, os.R_OK):
+            if os.path.isfile(abs_path):
+                content = self.__readFile(abs_path)
                 if self.schema is not None:
                     try:
-                        validate(self.content, self.schema)
+                        validate(content, self.schema)
                     except Exception as err:
-                        # error = str(err)
-                        # error = error.replace("\n", " ->")
-                        # raise InvalidData(" ".join(str(error).split()))
                         raise InvalidData(err.message)
             else:
-                raise Exception("'%s' does not appear to be a regular file.")
+                raise Exception("'%s' does not appear to be a regular file." % (abs_path))
         else:
-            raise Exception("File '%s' does not exist or is not accessible." % (path))
+            raise Exception("File '%s' does not exist or is not accessible." % (abs_path))
 
-        return self.content
+        return content
 
     def __readFile(self, path):
 
@@ -122,7 +125,8 @@ class StructuredDataFile():
 
             if self.expect_json:
                 try:
-                    self.__readJSON(f)
+                    f.seek(0)
+                    return json.load(f)
                 except Exception as err:
                     errors.append("JSON: %s" % str(err))
                 else:
@@ -130,7 +134,8 @@ class StructuredDataFile():
 
             if self.expect_yaml:
                 try:
-                    self.__readYAML(f)
+                    f.seek(0)
+                    return yaml.load(f)
                 except Exception as err:
                     errors.append("YAML: %s" % str(err))
                 else:
@@ -138,15 +143,3 @@ class StructuredDataFile():
 
             if len(errors) > 0:
                 raise Exception("Could not load file '%s'.  Reason: '%s'" % (path, ",".join(errors)))
-
-    def __readJSON(self, f):
-        f.seek(0)
-        data = json.load(f)
-        self.content = data
-        return True
-
-    def __readYAML(self, f):
-        f.seek(0)
-        data = yaml.load(f)
-        self.content = data
-        return True
