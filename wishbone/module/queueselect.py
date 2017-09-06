@@ -41,17 +41,16 @@ class QueueSelect(ProcessModule):
     A rule rule looks like this:
 
         { "name": "name of the rule",
-          "queue": "some Jinja2 template returning the queue name"
+          "queue": "{{ 'queue_1,queue_one' if data.one == 1 else 'queue_2,queue_two' }}"
           "payload":
-            "queue_name_1": {
+            "queue_1": {
                 "detail_1": "some value",
                 "detail_2": "some other value",
             },
-            "queue_name_2": {
+            "queue_2": {
                 "detail_1": "some value",
                 "detail_2": "some other value",
             }
-
           }
         }
 
@@ -113,8 +112,8 @@ class QueueSelect(ProcessModule):
         for template in event.kwargs.templates:
             self.handleQueueSelect(
                 template_name=template.name,
-                queue_name=template.queue,
-                payload=template["payload"].get(template.name, {}),
+                queue_list=template.queue,
+                payload=template["payload"],
                 event=event)
 
         for file_name, file_content in self.template_loader.dump().items():
@@ -125,30 +124,41 @@ class QueueSelect(ProcessModule):
             else:
                 self.handleQueueSelect(
                     template_name=file_name,
-                    queue_name=queue_name,
+                    queue_list=queue_name,
                     payload=file_content["payload"].get(queue_name, {}),
                     event=event)
 
-    def handleQueueSelect(self, template_name, queue_name, payload, event):
+    def handleQueueSelect(self, template_name, queue_list, payload, event):
         '''Handles submitting <event> into queue <queue_name>.'''
 
-        if self.pool.hasQueue(queue_name):
-            self.logging.debug("Template '{template_name}' selected queue '{queue_name}' to route event '{event_id}' to.".format(
-                template_name=template_name,
-                queue_name=queue_name,
-                event_id=event.get('uuid')
-            ))
-            event.set(payload, "@tmp.%s" % (self.name))
-            self.submit(
-                event.clone(),
-                queue_name
-            )
-        else:
-            self.logging.debug("Template '{template_name}' selected non-existing queue '{queue_name}' to route event '{event_id}' to.".format(
-                template_name=template_name,
-                queue_name=queue_name,
-                event_id=event.get('uuid')
-            ))
+        for queue_name in [queue.strip() for queue in queue_list.split(',')]:
+
+            if self.pool.hasQueue(queue_name):
+
+                self.logging.debug("Template '{template_name}' selected queue '{queue_name}' to route event '{event_id}' to.".format(
+                    template_name=template_name,
+                    queue_name=queue_name,
+                    event_id=event.get('uuid')
+                ))
+
+                # Construct and set the payload
+                queue_payload = {
+                    "original_event_id": event.get('uuid'),
+                    "queue": queue_name,
+                    "payload": payload.get(queue_name, {})
+                }
+                e = event.clone()
+                e.set(queue_payload, "@tmp.%s" % (self.name))
+
+                # Submit a clone of the event to the required queue
+                self.submit(e, queue_name)
+
+            else:
+                self.logging.debug("Template '{template_name}' selected non-existing queue '{queue_name}' to route event '{event_id}' to.".format(
+                    template_name=template_name,
+                    queue_name=queue_name,
+                    event_id=event.get('uuid')
+                ))
 
     def handleFileTemplate(self, event):
         '''Loads or deletes the template file defined in data.path.'''
@@ -166,5 +176,4 @@ class QueueSelect(ProcessModule):
         else:
             self.logging.warning("No support for inotify type '{inotify_type}'. Dropped.".format(
                 inotify_type=inotify_type
-                )
-            )
+            ))

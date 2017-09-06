@@ -121,6 +121,7 @@ setup(
         ],
         'wishbone.module.flow': [
             'acknowledge = wishbone.module.acknowledge:Acknowledge',
+            'count = wishbone.module.count:Count',
             'deserialize = wishbone.module.deserialize:Deserialize',
             'fanout = wishbone.module.fanout:Fanout',
             'funnel = wishbone.module.funnel:Funnel',
