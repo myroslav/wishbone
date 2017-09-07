@@ -60,7 +60,7 @@ class RoundRobin(FlowModule):
         self.destination_queues = []
         for queue in self.pool.listQueues(names=True):
             if queue not in ["failed", "success", "metrics", "logs"]:
-                self.destination_queues.append(self.pool.getQueue(queue))
+                self.destination_queues.append(queue)
 
         if not self.kwargs.randomize:
             self.cycle = cycle(self.destination_queues)

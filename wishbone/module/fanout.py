@@ -54,9 +54,8 @@ class Fanout(FlowModule):
         self.destinations = []
         for queue in self.pool.listQueues(names=True, default=False):
             if queue != "inbox":
-                self.destinations.append(self.pool.getQueue(queue))
+                self.destinations.append(queue)
 
     def consume(self, event):
-
         for queue in self.destinations:
             self.submit(event.clone(), queue)
