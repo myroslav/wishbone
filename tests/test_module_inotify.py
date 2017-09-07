@@ -22,11 +22,9 @@
 #
 #
 
-from wishbone.event import Event
 from wishbone.module.wb_inotify import WBInotify
 from wishbone.actor import ActorConfig
 from wishbone.utils.test import getter
-from wishbone.lookup import EventLookup
 from uuid import uuid4
 import os
 from gevent import sleep
@@ -48,6 +46,6 @@ def test_module_inotify_default():
     os.unlink(filename)
     sleep(1)
     e = getter(inotify.pool.queue.outbox)
-    assert e.get() == { "path": filename, "inotify_type": "WISHBONE_INIT" }
+    assert e.get() == {"path": filename, "inotify_type": "WISHBONE_INIT"}
     assert getter(inotify.pool.queue.outbox).get()["inotify_type"] == "IN_ATTRIB"
     assert getter(inotify.pool.queue.outbox).get()["inotify_type"] == "IN_DELETE_SELF"

@@ -22,19 +22,17 @@
 #
 #
 
-from wishbone.event import Event
-# We need to import as otherwise TestEvent is treated as test code
-from wishbone.module.testevent import TestEvent as XTestEvent
+from wishbone.module.generator import Generator
 from wishbone.actor import ActorConfig
 from wishbone.utils.test import getter
-from gevent import sleep
+
 
 def test_module_logs():
 
-    actor_config = ActorConfig('testevent', 100, 1, {}, "")
+    actor_config = ActorConfig('generator', 100, 1, {}, "")
 
     # {"time": time(), "level": level, "pid": getpid(), "module": self.name, "message": message}
-    test_event = XTestEvent(actor_config)
+    test_event = Generator(actor_config)
     test_event.pool.queue.logs.disableFallThrough()
     test_event.start()
 
@@ -42,4 +40,3 @@ def test_module_logs():
     for key in ["time", "level", "pid", "module", "message"]:
         assert key in log
     test_event.stop()
-

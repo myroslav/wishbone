@@ -25,20 +25,23 @@
 from wishbone.componentmanager import ComponentManager
 from wishbone.event import Event
 
-def test_wishbone_function_modify_uppercase():
+
+def test_wishbone_function_module_uppercase():
 
     e = Event({"case": "upper"})
-    f = ComponentManager().getComponentByName("wishbone.function.modify.uppercase")("data.case", "data.case")
+    f = ComponentManager().getComponentByName("wishbone.function.module.uppercase")("data.case", "data.case")
     assert f(e).get() == {"case": "UPPER"}
 
-def test_wishbone_function_modify_lowercase():
+
+def test_wishbone_function_module_lowercase():
 
     e = Event({"case": "LOWER"})
-    f = ComponentManager().getComponentByName("wishbone.function.modify.lowercase")("data.case", "data.case")
+    f = ComponentManager().getComponentByName("wishbone.function.module.lowercase")("data.case", "data.case")
     assert f(e).get() == {"case": "lower"}
 
-def test_wishbone_function_process_set():
+
+def test_wishbone_function_module_set():
 
     e = Event({"hey": "how"})
-    f = ComponentManager().getComponentByName("wishbone.function.modify.set")({"greeting": "hello"}, "tmp.test")
+    f = ComponentManager().getComponentByName("wishbone.function.module.set")({"greeting": "hello"}, "tmp.test")
     assert f(e).get("tmp.test") == {"greeting": "hello"}

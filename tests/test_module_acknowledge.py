@@ -26,7 +26,6 @@ from wishbone.event import Event
 from wishbone.module.acknowledge import Acknowledge
 from wishbone.actor import ActorConfig
 from wishbone.utils.test import getter
-from wishbone.lookup import EventLookup
 
 
 def test_module_acknowledge_default():
@@ -68,6 +67,7 @@ def test_module_acknowledge_dropped():
 
     assert getter(acknowledge.pool.queue.dropped).get() == "one"
     acknowledge.stop()
+
 
 def test_module_acknowledge_acknowledge():
 

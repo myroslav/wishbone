@@ -30,7 +30,7 @@ from wishbone.utils.test import getter
 
 def test_module_fanout():
 
-    actor_config = ActorConfig('fanout', 100, 1, {}, "")
+    actor_config = ActorConfig('fanout', 100, 1, {}, "", disable_exception_handling=True)
     fanout = Fanout(actor_config)
     fanout.pool.queue.inbox.disableFallThrough()
 
