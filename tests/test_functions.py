@@ -26,6 +26,13 @@ from wishbone.componentmanager import ComponentManager
 from wishbone.event import Event
 
 
+def test_wishbone_function_module_append():
+
+    e = Event({"tags": ["one", "two"]})
+    f = ComponentManager().getComponentByName("wishbone.function.module.append")("three", "data.tags")
+    assert f(e).get() == {"tags": ["one", "two", "three"]}
+
+
 def test_wishbone_function_module_uppercase():
 
     e = Event({"case": "upper"})
