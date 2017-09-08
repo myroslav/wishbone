@@ -76,7 +76,7 @@ class BootStrap():
         kill = subparsers.add_parser('kill', description="Kills the Wishbone processes immediately.")
         kill.add_argument('--pid', type=str, dest='pid', default='wishbone.pid', help='The pidfile to use.')
 
-        subparsers.add_parser('list', description="Lists the available Wishbone modules.")
+        subparsers.add_parser('list', description="Lists the available modules.")
 
         show = subparsers.add_parser('show', description="Shows information about a component.")
         show_group = show.add_mutually_exclusive_group(required=True)
@@ -247,7 +247,7 @@ class Dispatch():
         '''
 
         print((self.generateHeader()))
-        print("Available Wishbone components:")
+        print("Available components:")
         print((ComponentManager().getComponentTable()))
 
     def show(self):
