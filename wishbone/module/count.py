@@ -29,28 +29,52 @@ from gevent import sleep
 
 class Count(FlowModule):
 
-    '''**Lets events pass through based on the number of times a value occurs.**
+    '''**Pass or drop events based on the number of times an event value occurs.**
 
-    Events pass through after a certain value has occured a predefined number
-    of times.
+    Events pass through or get dropped after a certain key/value has appeared
+    for a number of times within an optional time window.
 
-    This counter can also reset and expire after a predefined time.
+    When the time window expires, the occurance counter for that field is
+    reset.
 
-    An example use case is that an event should occur a number of times within
-    a certian timeframe prior to further action is needed.
+    Conditions have following format:
 
-    A condition has following format:
+    Example 1:
 
-        { "data": {
+        {
+        "data": {
             "value": "abc",
-            "frequency": 10,
+            "occurrence": 10,
             "window": 60
-        }}
+            "action": "pass"
+            }
+        }
 
     This means if an event of which the <data> field has value "abc" occurs 10
     times within a time window of 60 seconds since the first occurance
     happened, the 10th event will pass through. The first 9 events will get
     dropped.
+
+
+    Example 2:
+
+        {
+        "tmp.address": {
+            "value": "127.0.0.1",
+            "occurence": 10,
+            "window": 60,
+            "action": "drop"
+            }
+        }
+
+    This means that events with field <tmp.address> and value <127.0.0.1> can
+    pass through 10 times after which the events get dropped within a time
+    window of 60 seconds
+
+
+    A window of `0 seconds` disables the time window expiration for a key.
+
+    Events which do not have the requested key can pass through.
 
     Parameters:
 
@@ -88,25 +112,32 @@ class Count(FlowModule):
 
     def consume(self, event):
 
-        for key, condition in self.kwargs.conditions.items():
-            try:
+        for key, condition in event.kwargs.conditions.items():
+            if event.has(key):
                 if event.get(key) == condition["value"]:
                     if key in self.__counter:
                         self.__counter[key] += 1
-                        if self.__counter[key] >= condition["frequency"]:
-                            self.submit(event, "outbox")
-                            break
                     else:
                         self.__counter[key] = 1
                         if condition["window"] > 0:
                             self.__count_down_pool.spawn(self.__countDown, condition["window"], key)
 
-                    self.submit(event, "dropped")
-                    self.logging.debug("Event with id '%s' and key '%s' dropped" % (event.get('uuid'), key))
-
-            except KeyError:
-                self.logging.debug("Event with id '%s' has no key '%s'." % (
-                    event.get('uuid'), key))
+                    if self.__counter[key] >= condition["occurrence"]:
+                        if condition["action"] == "pass":
+                            self.submit(event, "outbox")
+                        if condition["action"] == "drop":
+                            self.submit(event, "dropped")
+                            self.logging.debug("Event with id '%s' and key '%s' dropped" % (event.get('uuid'), key))
+                    else:
+                        if condition["action"] == "pass":
+                            self.submit(event, "dropped")
+                            self.logging.debug("Event with id '%s' and key '%s' dropped" % (event.get('uuid'), key))
+                        if condition["action"] == "drop":
+                            self.submit(event, "outbox")
+                    break
+        else:
+            self.submit(event, "outbox")
+            self.logging.debug("Event with id '%s' has not a single key defined in the conditions therefor it is passed to outbox." % (event.get('uuid'), key))
 
     def __countDown(self, seconds, key):
 
