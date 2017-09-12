@@ -130,7 +130,6 @@ setup(
             'roundrobin = wishbone.module.roundrobin:RoundRobin',
             'switch = wishbone.module.switch:Switch',
             'tippingbucket = wishbone.module.tippingbucket:TippingBucket',
-            'ttl = wishbone.module.ttl:TTL'
         ],
         'wishbone.module.process': [
             'modify = wishbone.module.modify:Modify',
