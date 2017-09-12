@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  test_module_jsonencode.py
+#  test_module_functions.py
 #
 #  Copyright 2017 Jelle Smet <development@smetj.net>
 #

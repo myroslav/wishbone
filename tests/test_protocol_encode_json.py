@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  strftime.py
+#  test_protocol_decode_json.py
 #
 #  Copyright 2017 Jelle Smet <development@smetj.net>
 #
@@ -22,25 +22,17 @@
 #
 #
 
-from wishbone.function.template import TemplateFunction
-import arrow
+
+from wishbone.protocol.encode.msgpack import MSGPack
 
 
-class STRFTime(TemplateFunction):
+def test_protocol_encode_json_dict():
 
-    '''
-    **Returns a formatted version of an epoch timestamp.**
+    m = MSGPack()
+    assert m.handler({"one": 1}) == b'\x81\xa3one\x01'
 
-    - Parameters to initialize the function:
 
-        None
+def test_protocol_encode_json_list():
 
-    - Parameters to call the function:
-
-        - epoch(int/float)(): Epoch value
-        - template(str)(): The template to which to convert the provided epoch
-    '''
-
-    def lookup(self, epoch, template):
-
-        return arrow.get(epoch).format(template)
+    m = MSGPack()
+    assert m.handler(["one", "two"]) == b'\x92\xa3one\xa3two'

@@ -22,6 +22,7 @@ Features:
 - Removed @-prefix from default event fields
 - Added wishbone.module.flow.queueselect
 - Added wishbone.module.flow.count
+- Removed wishbone.module.flow.ttl in favor of wishbone.module.flow.count
 
 Bugfixes:
 

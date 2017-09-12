@@ -41,30 +41,27 @@ class RandomWord(TemplateFunction):
         - filename(str)(None): When value is None, a buildin wordlist is used.
                                If not a filename of a wordlist is expected.
 
+        - encoding(str)("latin-1"): The encoding used to read the file.
+
 
     - Parameters to call the function:
 
         None
     '''
 
-    def __init__(self, filename=None):
+    def __init__(self, filename=None, encoding="latin-1"):
 
         if filename is None:
-            self.filename = "%s/../data/wordlist.txt" % (os.path.dirname(__file__))
+            self.filename = "%s/../../data/wordlist.txt" % (os.path.dirname(__file__))
         else:
             self.filename = filename
 
-        self.wordlist = self.readWordlist(filename)
+        self.wordlist = self.readWordlist(filename, encoding)
 
-    def readWordlist(self, location):
-        with io.open(self.filename, encoding="latin-1") as f:
+    def readWordlist(self, location, encoding):
+        with io.open(self.filename, encoding=encoding) as f:
             return f.readlines()
 
     def lookup(self):
 
-        while True:
-            word = choice(self.wordlist).rstrip()
-            try:
-                return word.encode("latin-1", "ignore")
-            except:
-                pass
+        return choice(self.wordlist).rstrip()

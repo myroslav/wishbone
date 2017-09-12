@@ -98,6 +98,7 @@ class QueueSelect(ProcessModule):
         self.pool.createQueue("inbox")
         self.pool.createQueue("outbox")
         self.pool.createQueue("file")
+        self.pool.createQueue("nomatch")
 
         self.registerConsumer(self.consume, "inbox")
         self.registerConsumer(self.handleFileTemplate, "file")
@@ -159,6 +160,7 @@ class QueueSelect(ProcessModule):
                     queue_name=queue_name,
                     event_id=event.get('uuid')
                 ))
+                self.submit(event, "nomatch")
 
     def handleFileTemplate(self, event):
         '''Loads or deletes the template file defined in data.path.'''
