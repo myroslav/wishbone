@@ -25,6 +25,52 @@
 from wishbone.event import Event
 
 
+def test_event_bulk_default():
+
+    e = Event(bulk=True)
+    assert e.dump()["bulk"]
+
+
+def test_event_appendBulk():
+
+    e = Event(bulk=True)
+    ee = Event({"one": 1})
+
+    e.appendBulk(ee)
+    assert e.dump()["data"][0]["uuid"] == ee.data["uuid"]
+
+
+def test_event_appendBulkBad():
+
+    normal_event = Event()
+
+    try:
+        normal_event.appendBulk(Event())
+    except Exception:
+        assert True
+    else:
+        assert False
+
+    bulk_event = Event(bulk=True)
+    try:
+        bulk_event.appendBulk("hello")
+    except Exception:
+        assert True
+    else:
+        assert False
+
+
+def test_event_clone():
+
+    a = Event({"one": 1, "two": 2})
+    b = a.clone()
+
+    assert id(a.data) != id(b.data)
+    assert not a.data["cloned"]
+    assert b.data["cloned"]
+    assert b.data["uuid_previous"][0] == a.data["uuid"]
+
+
 def test_event_format():
 
     e = Event({"one": 1, "two": 2})

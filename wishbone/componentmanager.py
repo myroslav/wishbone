@@ -111,7 +111,7 @@ class ComponentManager():
             name (str): The component name.
 
         Returns:
-            class: A ``wishbone.Actor```, ``wishbone.Function`` based class
+            class: A ``wishbone.Actor``, ``wishbone.Function`` based class
 
         Raises:
             NoSuchComponent: The module does not exist.

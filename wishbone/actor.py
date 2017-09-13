@@ -404,9 +404,7 @@ class Actor(object):
             # Render kwargs relative to the event's content and make these accessible under event.kwargs
             event.kwargs = self.__renderKwargs.render(
                 queue_context=queue,
-                event_content=event.dump(
-                    complete=True
-                )
+                event_content=event.dump()
             )
 
             # Validate TTL

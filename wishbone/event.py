@@ -29,6 +29,7 @@ from uuid import uuid4
 from jinja2 import Template
 from jinja2 import Undefined
 from easydict import EasyDict
+from copy import deepcopy
 
 
 class SilentUndefined(Undefined):
@@ -39,7 +40,7 @@ class SilentUndefined(Undefined):
         return None
 
 
-EVENT_RESERVED = ["timestamp", "version", "data", "tmp", "errors", "uuid"]
+EVENT_RESERVED = ["timestamp", "version", "data", "tmp", "errors", "uuid", "uuid_previous", "cloned", "bulk"]
 
 
 class Bulk(object):
@@ -142,92 +143,149 @@ class Bulk(object):
 
 class Event(object):
 
-    '''
-    **The Wishbone event object representation.**
+    '''The Wishbone event object.
 
     A class object containing the event data being passed from one Wishbone
     module to the other.
+
+    Args:
+
+        data (dict/list/string/int/float): The data to assign to the <data> field.
+        ttl (int): The TTL value for the event.
     '''
 
-    def __init__(self, data=None, uuid=True, ttl=254):
+    def __init__(self, data=None, ttl=254, bulk=False):
 
         self.data = {
-            "timestamp": time.time(),
-            "version": 1,
+            "cloned": False,
+            "bulk": bulk,
             "data": None,
-            "tmp": {
-            },
             "errors": {
             },
             "tags": [],
-            "ttl": ttl
+            "timestamp": time.time(),
+            "tmp": {
+            },
+            "ttl": ttl,
+
+            "uuid_previous": [
+            ],
+            "version": 1,
+
         }
-        self.set(data)
+        if bulk:
+            self.data["data"] = []
+        else:
+            self.set(data)
+        self.data["uuid"] = str(uuid4())
 
-        if uuid:
-            self.data["uuid"] = str(uuid4())
+    def appendBulk(self, event):
+        '''Appends an event to this bulk event.
 
-        self.kwargs = EasyDict({})
+        Args:
 
-    def __dummy(self):
+            event(wishbone.event.Event): The event to add to the bulk instance
 
-        pass
+        Returns:
+
+            None
+
+        Raises:
+
+            InvalidData: Either the event is not of type Bulk or <event> is
+                         not an wishbone.event.Event instance.
+        '''
+
+        if self.data["bulk"]:
+            if isinstance(event, Event):
+                self.data["data"].append(event.dump())
+            else:
+                raise InvalidData("<event> should be of type wishbone.event.Event.")
+        else:
+            raise InvalidData("This instance is not initialized as a bulk event.")
 
     def clone(self):
-        '''
-        Returns a cloned version of the event using deepcopy.
-        '''
+        '''Returns a cloned version of the event.
 
-        c = self.deepishCopy(self.data)
-        e = Event()
-        e.data = c
+        Args:
+
+            None
+
+        Returns:
+
+            class: A ``wishbone.event.Event`` instance
+
+
+        '''
+        e = deepcopy(self)
+
+        if "uuid_previous" in e.data:
+            e.data["uuid_previous"].append(
+                e.data["uuid"]
+            )
+        else:
+            e.data["uuid_previous"] = [
+                e.data["uuid"]
+            ]
+        e.data["uuid"] = str(uuid4())
+        e.data["cloned"] = True
+
         return e
 
     def copy(self, source, destination):
-        '''
-        Copies the source key to the destination key.
+        '''Copies the source key to the destination key.
 
-        :param str source: The name of the source key.
-        :param str destination: The name of the destination key.
+        Args:
+
+            source (str): The name of the source key.
+            destination (str): The name of the destination key.
         '''
 
-        self.set(self.deepishCopy(self.get(source)), destination)
+        self.set(
+            deepcopy(
+                self.get(
+                    source
+                )
+            ),
+            destination
+        )
 
     def decrementTTL(self):
+        '''Decrements the TTL value.
+
+        Args:
+
+            None
+
+        Returns:
+
+            None
+
+        Raises:
+
+            TTLExpired: When TTL has reached 0.
+        '''
 
         if self.data["ttl"] == 0:
             raise TTLExpired("Event TTL expired in transit.")
         else:
             self.data["ttl"] -= 1
 
-    def deepishCopy(self, org):
-        '''
-        much, much faster than deepcopy, for a dict of the simple python types.
-
-        Blatantly ripped off from https://writeonly.wordpress.com/2009/05/07
-        /deepcopy-is-a-pig-for-simple-data/
-        '''
-
-        if isinstance(org, dict):
-            out = dict().fromkeys(org)
-            for k, v in list(org.items()):
-                try:
-                    out[k] = v.copy()   # dicts, sets
-                except AttributeError:
-                    try:
-                        out[k] = v[:]   # lists, tuples, strings, unicode
-                    except TypeError:
-                        out[k] = v      # ints
-
-            return out
-        else:
-            return org
-
     def delete(self, key=None):
-        '''
-        Deletes a key.
+        '''Deletes a key.
 
-        :param str key: The name of the key to delete
+        Args:
+
+            key (str): The key to delete
+
+        Returns:
+
+            None
+
+        Raises:
+
+            Exception: Deleting the root of a reserved keyword such as <data> or <tags>.
+            KeyError: When a non-existing key is referred to.
         '''
 
         s = key.split('.')
@@ -244,55 +302,37 @@ class Event(object):
             else:
                 del(self.data[key])
 
-    def dictMerge(self, dct, merge_dct):
-        """ Recursive dict merge. Inspired by :meth:``dict.update()``, instead of
-        updating only top-level keys, dictMerge recurses down into dicts nested
-        to an arbitrary depth, updating keys. The ``merge_dct`` is merged into
-        ``dct``.
+    def dump(self):
+        '''Dumps the content of the event.
 
-        Stolen from https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
+        Args:
 
-        :param dct: dict onto which the merge is executed
-        :param merge_dct: dct merged into dct
-        :return: None
-        """
-        for k, v in list(merge_dct.items()):
-            if k in dct and isinstance(dct[k], dict) and isinstance(merge_dct[k], dict):
-                self.dictMerge(dct[k], merge_dct[k])
-            else:
-                dct[k] = merge_dct[k]
+            None
 
-    def dump(self, complete=False, convert_timestamp=True):
-        '''
-        Dumps the content of the event.
+        Returns:
 
-        :param bool complete: Determines whether to include tmp and errors.
-        :param bool convert_timestamp: When True converts <Arrow> object to iso8601 string.
-        :return: The content of the event.
-        :rtype: dict
+            dict: The content of the event.
         '''
 
-        d = {}
-        for key, value in list(self.data.items()):
-            if key == "tmp" and not complete:
-                continue
-            if key == "errors" and not complete:
-                continue
-            elif isinstance(value, arrow.arrow.Arrow) and convert_timestamp:
-                d[key] = str(value)
-            else:
-                d[key] = value
-
-        return d
+        d = deepcopy(self)
+        d.data["timestamp"] = str(d.data["timestamp"])
+        return d.data
 
     def render(self, template, key="data"):
-        '''
-        Returns a formatted string using the provided template and key
+        '''Returns a formatted string using the provided template and key
 
-        :param str jinja2.Template: The template to apply
-        :param str key: The name of key providing the values for the template
-        :return: The completed template
-        :rtype: str
+        Args:
+
+            template (str): A string representing the Jinja2 template.
+            key (str): The name of key providing the values for the template
+
+        Returns:
+
+            str: The rendered string
+
+        Raises:
+
+            InvalidData: An invalid jinja2 template has been provided
         '''
 
         try:
@@ -301,12 +341,19 @@ class Event(object):
             raise InvalidData("Failed to render template. Reason: %s" % (err))
 
     def get(self, key="data"):
-        '''
-        Returns the value of <key>.
+        '''Returns the value of <key>.
 
+        Args:
 
-        :param str key: The name of the key to read.
-        :return: The value of <key>
+            key (str): The name of the key to read.
+
+        Returns:
+
+            str/int/float/dict/list: The value of the key
+
+        Raises:
+
+            KeyError: The provided key does not exist.
         '''
 
         def travel(path, d):
@@ -329,11 +376,19 @@ class Event(object):
                 raise KeyError(key)
 
     def has(self, key="data"):
-        '''
-        Returns a boot indicating the event has <key>
+        '''Returns a bool indicating the event has <key>
 
-        :param str key: The name of the key to check
-        :return: Bool
+        Args:
+
+            key (str): The name of the key to check
+
+        Returns:
+
+            bool: True if the key is there otherwise false
+
+        Raises:
+
+            KeyError: The provided key does not exist
         '''
 
         try:
@@ -344,18 +399,23 @@ class Event(object):
             return True
 
     def set(self, value, key="data"):
-        '''
-        Sets the value of <key>.
+        '''Sets the value of <key>.
 
-        :param value: The value to set.
-        :param str key: The name of the key to assign <value> to.
+        Args:
+
+            value (str, int, float, dict, list): The value to assign.
+            key (str): The key to store the value
+
+        Returns:
+
+            None
+
         '''
         result = value
         for name in reversed(key.split('.')):
             result = {name: result}
 
-        self.dictMerge(self.data, result)
-        # self.data.update(result)
+        self.__dictMerge(self.data, result)
 
     def slurp(self, data):
         '''Expects <data> to be a dict representation of an <Event> and
@@ -364,8 +424,19 @@ class Event(object):
         The timestamp field will be reset to the time this method has been
         called.
 
-        :param dict data: The dict object containing the complete event.
-        :return: None
+        Args:
+
+            data (dict): The dict object containing the complete event.
+
+        Returns:
+
+            wishbone.event.Event: A Wishbone event instance.
+
+
+        Raises:
+
+            InvalidEventFormat:  `data` does not contain valid fields to build
+                                  an event
         '''
 
         try:
@@ -388,3 +459,26 @@ class Event(object):
             self.data["timestamp"] = time.time()
 
     raw = dump
+
+    def __dictMerge(self, dct, merge_dct):
+        ''' Recursive dict merge. Inspired by :meth:``dict.update()``, instead of
+        updating only top-level keys, __dictMerge recurses down into dicts nested
+        to an arbitrary depth, updating keys. The ``merge_dct`` is merged into
+        ``dct``.
+
+        Stolen from https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
+
+        Args:
+
+            dct(dict): The dictionary onto which the merge is executed
+            merge_dct(dict: dict merged into `dct`
+
+        Returns:
+
+            dict: The merged version
+        '''
+        for k, v in list(merge_dct.items()):
+            if k in dct and isinstance(dct[k], dict) and isinstance(merge_dct[k], dict):
+                self.__dictMerge(dct[k], merge_dct[k])
+            else:
+                dct[k] = merge_dct[k]
