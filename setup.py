@@ -122,7 +122,6 @@ setup(
         'wishbone.module.flow': [
             'acknowledge = wishbone.module.acknowledge:Acknowledge',
             'count = wishbone.module.count:Count',
-            'deserialize = wishbone.module.deserialize:Deserialize',
             'fanout = wishbone.module.fanout:Fanout',
             'funnel = wishbone.module.funnel:Funnel',
             'fresh = wishbone.module.fresh:Fresh',
@@ -133,6 +132,7 @@ setup(
         ],
         'wishbone.module.process': [
             'modify = wishbone.module.modify:Modify',
+            'unpack = wishbone.module.unpack:Unpack',
             'template = wishbone.module.template:Template',
         ],
         'wishbone.module.input': [

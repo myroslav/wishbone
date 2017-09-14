@@ -317,28 +317,6 @@ class Event(object):
         d.data["timestamp"] = float(d.data["timestamp"])
         return d.data
 
-    def render(self, template, key="data"):
-        '''Returns a formatted string using the provided template and key
-
-        Args:
-
-            template (str): A string representing the Jinja2 template.
-            key (str): The name of key providing the values for the template
-
-        Returns:
-
-            str: The rendered string
-
-        Raises:
-
-            InvalidData: An invalid jinja2 template has been provided
-        '''
-
-        try:
-            return Template(template).render(self.get(key))
-        except Exception as err:
-            raise InvalidData("Failed to render template. Reason: %s" % (err))
-
     def get(self, key="data"):
         '''Returns the value of <key>.
 
@@ -397,6 +375,44 @@ class Event(object):
         else:
             return True
 
+    def isBulk(self):
+        '''Tells whether event is <bulk> or not.
+
+        Args:
+
+            None
+
+
+        Returns:
+
+            bool: True if the event is bulk
+
+        '''
+
+        return self.data["bulk"]
+
+    def render(self, template, key="data"):
+        '''Returns a formatted string using the provided template and key
+
+        Args:
+
+            template (str): A string representing the Jinja2 template.
+            key (str): The name of key providing the values for the template
+
+        Returns:
+
+            str: The rendered string
+
+        Raises:
+
+            InvalidData: An invalid jinja2 template has been provided
+        '''
+
+        try:
+            return Template(template).render(self.get(key))
+        except Exception as err:
+            raise InvalidData("Failed to render template. Reason: %s" % (err))
+
     def set(self, value, key="data"):
         '''Sets the value of <key>.
 
@@ -434,7 +450,7 @@ class Event(object):
 
         Raises:
 
-            InvalidEventFormat:  `data` does not contain valid fields to build
+            InvalidData:  `data` does not contain valid fields to build
                                   an event
         '''
         try:
@@ -459,6 +475,8 @@ class Event(object):
         else:
             self.data = data
             self.data["timestamp"] = time.time()
+
+        return(self)
 
     raw = dump
 

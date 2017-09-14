@@ -61,6 +61,12 @@ def test_event_appendBulkBad():
         assert False
 
 
+def test_event_isBulk():
+
+    a = Event(bulk=True)
+    assert a.isBulk()
+
+
 def test_event_clone():
 
     a = Event({"one": 1, "two": 2})
