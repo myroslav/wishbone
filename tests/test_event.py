@@ -23,6 +23,7 @@
 #
 
 from wishbone.event import Event
+from wishbone.error import TTLExpired, InvalidData
 
 
 def test_event_bulk_default():
@@ -71,10 +72,125 @@ def test_event_clone():
     assert b.data["uuid_previous"][0] == a.data["uuid"]
 
 
-def test_event_format():
+def test_event_copy():
+
+    a = Event({"one": 1, "two": 2})
+    a.copy("data.one", "data.two")
+    assert a.dump()["data"]["two"] == 1
+
+
+def test_event_decrementTTL():
+
+    a = Event(ttl=2)
+    a.decrementTTL()
+    assert a.dump()["ttl"] == 1
+
+    try:
+        a.decrementTTL()
+    except TTLExpired:
+        assert True
+    else:
+        assert False
+
+
+def test_event_delete():
+
+    a = Event({"one": 1, "two": 2})
+    a.delete("data.two")
+
+    try:
+        a.get("data.two")
+    except KeyError:
+        assert True
+    else:
+        assert False
+
+
+def test_event_dump():
+
+    from wishbone.event import EVENT_RESERVED
+
+    data = {"one": 1, "two": 2}
+    a = Event(data)
+    result = a.dump()
+
+    for key in EVENT_RESERVED:
+        assert key in result
+
+    assert result["data"] == data
+    assert isinstance(result["timestamp"], float)
+
+
+def test_event_render():
 
     e = Event({"one": 1, "two": 2})
     assert e.render("{{one}} is a number and so is {{two}}") == "1 is a number and so is 2"
+
+
+def test_event_render_error():
+
+    e = Event({"one": 1, "two": 2})
+
+    try:
+        e.render("{{one} is a number and so is {{two}}")
+    except InvalidData:
+        assert True
+    else:
+        assert False
+
+
+def test_event_get():
+
+    e = Event({"one": 1, "two": {"three": 3}})
+    assert e.get("data.two.three") == 3
+
+
+def test_event_has():
+
+    e = Event({"one": 1, "two": {"three": 3}})
+    assert e.has("data.one")
+    assert not e.has("blah")
+
+
+def test_event_set():
+
+    e = Event({"one": 1, "two": {"three": 3}})
+    e.set({"four": 4}, "data.two.three")
+    assert e.dump()["data"]["two"]["three"]["four"] == 4
+
+
+def test_event_slurp():
+
+    a = Event()
+    b = Event()
+    b.slurp(a.dump())
+
+    assert a.get('uuid') == b.get('uuid')
+
+
+def test_event_slurp_bad():
+
+    a = Event()
+    del(a.data["uuid"])
+    b = Event()
+
+    try:
+        b.slurp(a.dump())
+    except InvalidData:
+        assert True
+    else:
+        assert False
+
+
+def test_event_get_error():
+
+    e = Event({"one": 1, "two": {"three": 3}})
+    try:
+        e.get("data.blah")
+    except KeyError:
+        assert True
+    else:
+        assert False
 
 
 def test_event_uuid():

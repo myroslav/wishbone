@@ -22,13 +22,11 @@
 #
 #
 
-import arrow
 import time
-from wishbone.error import BulkFull, InvalidData, InvalidEventFormat, TTLExpired
+from wishbone.error import BulkFull, InvalidData, TTLExpired
 from uuid import uuid4
 from jinja2 import Template
 from jinja2 import Undefined
-from easydict import EasyDict
 from copy import deepcopy
 
 
@@ -36,11 +34,12 @@ class SilentUndefined(Undefined):
     '''
     Dont break pageloads because vars arent there!
     '''
+
     def _fail_with_undefined_error(self, *args, **kwargs):
         return None
 
 
-EVENT_RESERVED = ["timestamp", "version", "data", "tmp", "errors", "uuid", "uuid_previous", "cloned", "bulk"]
+EVENT_RESERVED = ["timestamp", "version", "data", "tmp", "errors", "uuid", "uuid_previous", "cloned", "bulk", "ttl"]
 
 
 class Bulk(object):
@@ -266,10 +265,10 @@ class Event(object):
             TTLExpired: When TTL has reached 0.
         '''
 
-        if self.data["ttl"] == 0:
+        self.data["ttl"] -= 1
+
+        if self.data["ttl"] <= 0:
             raise TTLExpired("Event TTL expired in transit.")
-        else:
-            self.data["ttl"] -= 1
 
     def delete(self, key=None):
         '''Deletes a key.
@@ -315,7 +314,7 @@ class Event(object):
         '''
 
         d = deepcopy(self)
-        d.data["timestamp"] = str(d.data["timestamp"])
+        d.data["timestamp"] = float(d.data["timestamp"])
         return d.data
 
     def render(self, template, key="data"):
@@ -438,22 +437,25 @@ class Event(object):
             InvalidEventFormat:  `data` does not contain valid fields to build
                                   an event
         '''
-
         try:
             assert isinstance(data, dict), "event.slurp() expects a dict."
             for item in [
-                ("timestamp", int),
+                ("timestamp", float),
                 ("version", int),
                 ("data", None),
                 ("tmp", dict),
                 ("errors", dict),
-                ("ttl", int),
+                ("uuid", str),
+                ("uuid_previous", list),
+                ("cloned", bool),
+                ("bulk", bool),
+                ("ttl", int)
             ]:
                 assert item[0] in data, "%s is missing" % (item[0])
                 if item[1] is not None:
                     assert isinstance(data[item[0]], item[1]), "%s type '%s' is not valid." % (item[0], item[1])
         except AssertionError as err:
-            raise InvalidEventFormat("The incoming data could not be used to construct an event.  Reason: '%s'." % err)
+            raise InvalidData("The incoming data could not be used to construct an event.  Reason: '%s'." % err)
         else:
             self.data = data
             self.data["timestamp"] = time.time()
