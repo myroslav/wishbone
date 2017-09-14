@@ -28,7 +28,6 @@ from wishbone.module.unpack import Unpack
 from wishbone.actor import ActorConfig
 from wishbone.utils.test import getter
 from wishbone.event import Event
-from gevent import sleep
 
 
 def test_module_unpack():
