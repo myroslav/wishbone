@@ -23,8 +23,8 @@
 #
 
 from wishbone.actor import Actor
-from wishbone.module import FlowModule
-from wishbone.event import Bulk
+from wishbone.event import Event
+from wishbone.module import ProcessModule
 from wishbone.error import BulkFull
 from gevent import sleep
 
@@ -45,11 +45,13 @@ class Bucket(object):
         self.logging.info("Created new bucket with aggregation key '%s'." % (self.key))
 
     def createEmptyBucket(self):
-        self.bucket = Bulk(self.size)
+        self.bucket = Event(
+            bulk=True,
+            bulk_size=self.size
+        )
         self.resetTimer()
 
     def flushBucketTimer(self):
-
         '''
         Flushes the buffer when <bucket_age> has expired.
         '''
@@ -58,7 +60,7 @@ class Bucket(object):
             sleep(1)
             self._timer -= 1
             if self._timer == 0:
-                if self.bucket.size() > 0:
+                if len(self.bucket.data) > 0:
                     self.logging.debug("Bucket age expired after %s s." % (self.age))
                     self.flush()
                 else:
@@ -68,7 +70,7 @@ class Bucket(object):
         '''
         Flushes the buffer.
         '''
-        self.logging.debug("Flushed bucket '%s' of size '%s'" % (self.key, self.bucket.size()))
+        self.logging.debug("Flushed bucket '%s' of size '%s'" % (self.key, len(self.bucket.data)))
         self.queue.put(self.bucket)
         self.createEmptyBucket()
 
@@ -80,11 +82,11 @@ class Bucket(object):
         self._timer = self.age
 
 
-class TippingBucket(FlowModule):
+class Pack(ProcessModule):
 
-    '''**Aggregates multiple events into bulk.**
+    '''**Packs multiple events into a bulk event.**
 
-    Aggregates multiple incoming events into bulk usually prior to submitting
+    Aggregates multiple events into a bulk event usually prior to submitting
     to an output module.
 
     Flushing the buffer can be done in various ways:
@@ -135,11 +137,11 @@ class TippingBucket(FlowModule):
     def consume(self, event):
 
         try:
-            self.getBucket(self.kwargs.aggregation_key).bucket.append(event)
+            self.getBucket(self.kwargs.aggregation_key).bucket.appendBulk(event)
         except BulkFull:
             self.logging.debug("Bucket full after %s events." % (self.kwargs.bucket_size))
             self.getBucket(self.kwargs.aggregation_key).flush()
-            self.getBucket(self.kwargs.aggregation_key).bucket.append(event)
+            self.getBucket(self.kwargs.aggregation_key).bucket.appendBulk(event)
 
     def getBucket(self, key):
 

@@ -26,118 +26,10 @@ import time
 from wishbone.error import BulkFull, InvalidData, TTLExpired
 from uuid import uuid4
 from jinja2 import Template
-from jinja2 import Undefined
 from copy import deepcopy
 
 
-class SilentUndefined(Undefined):
-    '''
-    Dont break pageloads because vars arent there!
-    '''
-
-    def _fail_with_undefined_error(self, *args, **kwargs):
-        return None
-
-
 EVENT_RESERVED = ["timestamp", "version", "data", "tmp", "errors", "uuid", "uuid_previous", "cloned", "bulk", "ttl"]
-
-
-class Bulk(object):
-
-    def __init__(self, max_size=None, delimiter="\n"):
-        self.__events = []
-        self.max_size = max_size
-        self.delimiter = delimiter
-        self.error = None
-
-    def append(self, event):
-        '''
-        Appends an event to the bulk object.
-        '''
-
-        if isinstance(event, Event):
-            if self.max_size is None or len(self.__events) < self.max_size:
-                self.__events.append(event)
-            else:
-                raise BulkFull("Max number of events (%s) is reached." % (self.max_size))
-        else:
-            raise InvalidData()
-
-    def clone(self):
-        '''
-        Returns a cloned version of the Bulk event using deepcopy.
-        '''
-
-        e = Bulk()
-        e.__events = self.deepishCopy(self.__events)
-        return e
-
-    def dump(self):
-        '''
-        Returns an iterator returning all contained events
-        '''
-
-        for event in self.__events:
-            yield event
-
-    def dumpFieldAsList(self, field="data"):
-        '''
-        Returns a list containing a specific field of each stored event.
-        Events with a missing field are skipped.
-        '''
-
-        result = []
-        for event in self.dump():
-            try:
-                result.append(event.get(field))
-            except KeyError:
-                pass
-        return result
-
-    def dumpFieldAsString(self, field="data"):
-        '''
-        Returns a string joining <field> of each event with <self.delimiter>.
-        Events with a missing field are skipped.
-        '''
-
-        result = []
-        for event in self.dump():
-            try:
-                result.append(event.get(field))
-            except KeyError:
-                pass
-
-        return self.delimiter.join(result)
-
-    def size(self):
-        '''
-        Returns the number of elements stored in the bulk.
-        '''
-
-        return len(self.__events)
-
-    def deepishCopy(self, org):
-        '''
-        much, much faster than deepcopy, for a dict of the simple python types.
-
-        Blatantly ripped off from https://writeonly.wordpress.com/2009/05/07
-        /deepcopy-is-a-pig-for-simple-data/
-        '''
-
-        if isinstance(org, dict):
-            out = dict().fromkeys(org)
-            for k, v in list(org.items()):
-                try:
-                    out[k] = v.copy()   # dicts, sets
-                except AttributeError:
-                    try:
-                        out[k] = v[:]   # lists, tuples, strings, unicode
-                    except TypeError:
-                        out[k] = v      # ints
-
-            return out
-        else:
-            return org
 
 
 class Event(object):
@@ -151,9 +43,13 @@ class Event(object):
 
         data (dict/list/string/int/float): The data to assign to the <data> field.
         ttl (int): The TTL value for the event.
+        bulk (bool): Initialize the event as a bulk event
+        bulk_size (int): The number of events the bulk can hold.
+
+    raises
     '''
 
-    def __init__(self, data=None, ttl=254, bulk=False):
+    def __init__(self, data=None, ttl=254, bulk=False, bulk_size=100):
 
         self.data = {
             "cloned": False,
@@ -177,6 +73,7 @@ class Event(object):
         else:
             self.set(data)
         self.data["uuid"] = str(uuid4())
+        self.bulk_size = bulk_size
 
     def appendBulk(self, event):
         '''Appends an event to this bulk event.
@@ -197,6 +94,9 @@ class Event(object):
 
         if self.data["bulk"]:
             if isinstance(event, Event):
+                if len(self.data["data"]) == self.bulk_size:
+                    raise BulkFull("The bulk event already contains '%s' events." % (self.bulk_size))
+
                 self.data["data"].append(event.dump())
             else:
                 raise InvalidData("<event> should be of type wishbone.event.Event.")

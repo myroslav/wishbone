@@ -23,7 +23,7 @@
 #
 
 from wishbone.event import Event
-from wishbone.error import TTLExpired, InvalidData
+from wishbone.error import TTLExpired, InvalidData, BulkFull
 
 
 def test_event_bulk_default():
@@ -39,6 +39,20 @@ def test_event_appendBulk():
 
     e.appendBulk(ee)
     assert e.dump()["data"][0]["uuid"] == ee.data["uuid"]
+
+
+def test_event_appendBulkFull():
+
+    e = Event(bulk=True, bulk_size=1)
+    ee = Event({"one": 1})
+
+    e.appendBulk(ee)
+    try:
+        e.appendBulk(ee)
+    except BulkFull:
+        assert True
+    else:
+        assert False
 
 
 def test_event_appendBulkBad():

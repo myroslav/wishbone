@@ -25,7 +25,6 @@
 
 from wishbone.actor import Actor
 from wishbone.module import OutputModule
-from wishbone.event import Bulk
 from gevent.os import make_nonblocking
 import arrow
 
@@ -77,7 +76,7 @@ class FileOut(OutputModule):
 
     def consume(self, event):
 
-        if isinstance(event, Bulk):
+        if event.isBulk():
             data = event.dumpFieldAsString(self.kwargs.selection)
         else:
             data = str(event.get(self.kwargs.selection))

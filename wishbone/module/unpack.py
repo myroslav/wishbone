@@ -30,7 +30,7 @@ from wishbone.error import InvalidData
 
 class Unpack(ProcessModule):
 
-    '''**Unpacks bulk events or single events.**
+    '''**Unpacks bulk events into single events.**
 
     Creates single events from all the events stored in a bulk event.
 

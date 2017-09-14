@@ -25,7 +25,6 @@
 from wishbone.queue import QueuePool
 from wishbone.logging import Logging
 from wishbone.event import Event as Wishbone_Event
-from wishbone.event import Bulk
 from wishbone.error import QueueConnected, ModuleInitFailure, InvalidModule, TTLExpired, InvalidData
 from wishbone.moduletype import ModuleType
 from wishbone.actorconfig import ActorConfig
@@ -429,10 +428,7 @@ class Actor(object):
                 exc_type, exc_value, exc_traceback = exc_info()
                 info = (traceback.extract_tb(exc_traceback)[-1][1], str(exc_type), str(exc_value))
 
-                if isinstance(event, Wishbone_Event):
-                    event.set(info, "errors.%s" % (self.name))
-                elif(event, Bulk):
-                    event.error = info
+                event.set(info, "errors.%s" % (self.name))
 
                 self.logging.error("%s" % (err))
                 self.submit(event, "failed")

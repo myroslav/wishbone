@@ -27,7 +27,6 @@ from wishbone.module import OutputModule
 from os import getpid
 from colorama import init, Fore, Back, Style
 import sys
-from wishbone.event import Bulk
 
 
 class Format():
@@ -131,7 +130,7 @@ class STDOUT(OutputModule):
 
     def consume(self, event):
 
-        if isinstance(event, Bulk):
+        if event.isBulk():
             data = event.dumpFieldAsList(
                 event.kwargs.selection
             )

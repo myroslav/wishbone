@@ -127,13 +127,14 @@ setup(
             'fresh = wishbone.module.fresh:Fresh',
             'queueselect = wishbone.module.queueselect:QueueSelect',
             'roundrobin = wishbone.module.roundrobin:RoundRobin',
-            'switch = wishbone.module.switch:Switch',
-            'tippingbucket = wishbone.module.tippingbucket:TippingBucket',
+            'switch = wishbone.module.switch:Switch'
+
         ],
         'wishbone.module.process': [
             'modify = wishbone.module.modify:Modify',
-            'unpack = wishbone.module.unpack:Unpack',
+            'pack = wishbone.module.pack:Pack',
             'template = wishbone.module.template:Template',
+            'unpack = wishbone.module.unpack:Unpack',
         ],
         'wishbone.module.input': [
             'cron =  wishbone.module.cron:Cron',

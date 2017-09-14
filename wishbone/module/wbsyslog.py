@@ -24,7 +24,6 @@
 
 from wishbone.actor import Actor
 from wishbone.module import OutputModule
-from wishbone.event import Bulk
 import syslog
 import sys
 import os
@@ -74,7 +73,7 @@ class Syslog(OutputModule):
 
     def consume(self, event):
 
-        if isinstance(event, Bulk):
+        if event.isBulk():
             for e in event.dump():
                 message = e.render(self.kwargs.message, '.')
                 level = e.render(self.kwargs.level, '.')
