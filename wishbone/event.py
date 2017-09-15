@@ -32,6 +32,25 @@ from copy import deepcopy
 EVENT_RESERVED = ["timestamp", "version", "data", "tmp", "errors", "uuid", "uuid_previous", "cloned", "bulk", "ttl", "tags"]
 
 
+def extractBulkItems(event, selection):
+    '''Yields a field from all events in the bulk event.
+
+    Args:
+
+        event (wishbone.event.Event): The wishbone event in bulk mode.
+        selection (str): The field to extract form each event in the bulk.
+
+
+    Yields:
+
+        str/int/float/dict/list: The value of the event
+    '''
+
+    if event.isBulk():
+        for e in event.data["data"]:
+            yield Event().slurp(e).get(selection)
+
+
 class Event(object):
 
     '''The Wishbone event object.
