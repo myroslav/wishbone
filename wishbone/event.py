@@ -29,7 +29,7 @@ from jinja2 import Template
 from copy import deepcopy
 
 
-EVENT_RESERVED = ["timestamp", "version", "data", "tmp", "errors", "uuid", "uuid_previous", "cloned", "bulk", "ttl"]
+EVENT_RESERVED = ["timestamp", "version", "data", "tmp", "errors", "uuid", "uuid_previous", "cloned", "bulk", "ttl", "tags"]
 
 
 class Event(object):
@@ -365,7 +365,8 @@ class Event(object):
                 ("uuid_previous", list),
                 ("cloned", bool),
                 ("bulk", bool),
-                ("ttl", int)
+                ("ttl", int),
+                ("tags", list)
             ]:
                 assert item[0] in data, "%s is missing" % (item[0])
                 if item[1] is not None:
