@@ -89,7 +89,8 @@ class STDOUT(OutputModule):
 
         - colorize(bool)(False)
            |  When True all STDOUT output is wrapped in between ANSI color
-           |  escape sequences.
+           |  escape sequences defined by `foreground_color`, `background_color`,
+           |  `color_style`.
 
         - foreground_color(str)("WHITE")
            |  The foreground color.

@@ -24,7 +24,6 @@
 
 from wishbone.actorconfig import ActorConfig
 from wishbone.module import InputModule
-from wishbone.protocol.decode.dummy import Dummy
 
 
 class DummyModule(InputModule):

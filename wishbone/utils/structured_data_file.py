@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  load_data.py
+#  structured_data_file.py
 #
 #  Copyright 2017 Jelle Smet <development@smetj.net>
 #

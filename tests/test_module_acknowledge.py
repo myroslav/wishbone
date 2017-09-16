@@ -91,4 +91,3 @@ def test_module_acknowledge_acknowledge():
     acknowledge.pool.queue.inbox.put(event_one)
     assert getter(acknowledge.pool.queue.outbox).get() == "one"
     acknowledge.stop()
-

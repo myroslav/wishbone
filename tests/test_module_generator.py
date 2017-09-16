@@ -40,6 +40,7 @@ def test_module_generator_basic():
     event = getter(test_event.pool.queue.outbox)
     assert event.get() == "test"
 
+
 def test_module_generator_dict():
 
     actor_config = ActorConfig('generator', 100, 1, {}, "")
@@ -50,4 +51,3 @@ def test_module_generator_dict():
 
     event = getter(test_event.pool.queue.outbox)
     assert event.get()["one"] == 1
-

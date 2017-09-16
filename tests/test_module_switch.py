@@ -26,7 +26,6 @@ from wishbone.event import Event
 from wishbone.module.switch import Switch
 from wishbone.actor import ActorConfig
 from wishbone.utils.test import getter
-from gevent import sleep
 
 
 def test_module_switch_default():
@@ -49,6 +48,7 @@ def test_module_switch_default():
     assert getter(switch.pool.queue.one).get() == "one"
 
     switch.stop()
+
 
 def test_module_switch_event():
 

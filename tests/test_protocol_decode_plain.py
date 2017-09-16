@@ -26,6 +26,7 @@
 from wishbone.protocol.decode.plain import Plain
 import itertools
 
+
 def test_protocol_decode_plain_basic():
 
     a = itertools.cycle(["a", "b", "c"])

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  randombool.py
+#  random_bool.py
 #
 #  Copyright 2017 Jelle Smet <development@smetj.net>
 #

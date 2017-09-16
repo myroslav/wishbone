@@ -57,6 +57,7 @@ def test_module_copy():
     assert "hi" == one.get('tmp.copy')["greeting"]
     assert id(one.get("data")) != id(one.get("tmp.copy"))
 
+
 def test_module_copy_default():
 
     a = get_actor({"copy": ["does.not.exist", "tmp.copy", "default"]})
@@ -64,6 +65,7 @@ def test_module_copy_default():
     a.pool.queue.inbox.put(e)
     one = getter(a.pool.queue.outbox)
     assert "default" == one.get('tmp.copy')
+
 
 def test_module_del_item():
 
@@ -133,7 +135,8 @@ def test_module_time():
     a = get_actor({"time": ["epoch", "X"]})
     e = Event("hello")
     a.pool.queue.inbox.put(e)
-    one = getter(a.pool.queue.outbox)
+    getter(a.pool.queue.outbox)
+
 
 def test_module_replace():
 
@@ -143,6 +146,7 @@ def test_module_replace():
     one = getter(a.pool.queue.outbox)
     assert one.get('data') == "hello XXX hello"
 
+
 def test_module_join():
 
     a = get_actor({"join": ['data', ",", "tmp.joined"]})
@@ -150,6 +154,7 @@ def test_module_join():
     a.pool.queue.inbox.put(e)
     one = getter(a.pool.queue.outbox)
     assert one.get('tmp.joined') == "one,two,three"
+
 
 def test_module_merge():
 

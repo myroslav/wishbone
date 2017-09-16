@@ -25,6 +25,7 @@
 
 from wishbone.protocol.decode.json import JSON
 
+
 class ReadlinesMock():
 
     data = [
@@ -36,18 +37,21 @@ class ReadlinesMock():
 
         return self.data
 
+
 def test_protocol_decode_json_basic():
 
     m = JSON()
     for item in m.handler(b'{"one": 1}'):
         assert item == {"one": 1}
 
+
 def test_protocol_decode_json_unicode():
 
     m = JSON()
     for item in m.handler(b'{"one": \xce\xb1"}'):
         assert item == {"one": u"α"}
-        assert isinstance(item["one"], unicode)
+        assert isinstance(item["one"], str)
+
 
 def test_protocol_decode_json_readlines():
 
