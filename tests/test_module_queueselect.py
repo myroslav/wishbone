@@ -135,3 +135,37 @@ def test_module_queueselect_nomatch():
     assert getter(queueselect.pool.queue.nomatch).get() == {"one": "one", "two": "two"}
 
     queueselect.stop()
+
+
+def test_module_queueselect_regex():
+
+    actor_config = ActorConfig('queueselect', 100, 1, {}, "", disable_exception_handling=True)
+
+    template = {
+        "name": "name of the rule",
+        "queue": "{{ 'queue_1' if regex('\d', data.one) else 'queue_2' }}",
+        "payload": {
+            "queue_1": {
+                "detail_1": "some value",
+                "detail_2": "some other value",
+            },
+            "queue_2": {
+                "detail_1": "some value",
+                "detail_2": "some other value",
+            }
+        }
+    }
+
+    queueselect = QueueSelect(actor_config, templates=[template])
+    queueselect.pool.queue.inbox.disableFallThrough()
+    queueselect.pool.queue.outbox.disableFallThrough()
+    queueselect.pool.queue.nomatch.disableFallThrough()
+
+    queueselect.start()
+
+    queueselect.pool.queue.inbox.put(Event({"one": 1, "two": "two"}))
+    assert getter(queueselect.pool.queue.nomatch).get() == {"one": 1, "two": "two"}
+
+    queueselect.stop()
+
+
