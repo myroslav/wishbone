@@ -144,7 +144,7 @@ def test_event_dump():
 def test_event_render():
 
     e = Event({"one": 1, "two": 2})
-    assert e.render("{{one}} is a number and so is {{two}}") == "1 is a number and so is 2"
+    assert e.render("{{data.one}} is a number and so is {{data.two}}") == "1 is a number and so is 2"
 
 
 def test_event_render_error():
@@ -152,7 +152,7 @@ def test_event_render_error():
     e = Event({"one": 1, "two": 2})
 
     try:
-        e.render("{{one} is a number and so is {{two}}")
+        e.render("{{data.one} is a number and so is {{data.two}}")
     except InvalidData:
         assert True
     else:

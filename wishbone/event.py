@@ -65,7 +65,10 @@ class Event(object):
         bulk (bool): Initialize the event as a bulk event
         bulk_size (int): The number of events the bulk can hold.
 
-    raises
+    Attributes:
+
+        data (dict): A dict containing the event data structure.
+        bulk_size (int): The max allowed bulk size.
     '''
 
     def __init__(self, data=None, ttl=254, bulk=False, bulk_size=100):
@@ -101,10 +104,6 @@ class Event(object):
 
             event(wishbone.event.Event): The event to add to the bulk instance
 
-        Returns:
-
-            None
-
         Raises:
 
             InvalidData: Either the event is not of type Bulk or <event> is
@@ -125,10 +124,6 @@ class Event(object):
     def clone(self):
         '''Returns a cloned version of the event.
 
-        Args:
-
-            None
-
         Returns:
 
             class: A ``wishbone.event.Event`` instance
@@ -146,6 +141,7 @@ class Event(object):
                 e.data["uuid"]
             ]
         e.data["uuid"] = str(uuid4())
+        e.data["timestamp"] = time.time()
         e.data["cloned"] = True
 
         return e
@@ -171,14 +167,6 @@ class Event(object):
     def decrementTTL(self):
         '''Decrements the TTL value.
 
-        Args:
-
-            None
-
-        Returns:
-
-            None
-
         Raises:
 
             TTLExpired: When TTL has reached 0.
@@ -195,10 +183,6 @@ class Event(object):
         Args:
 
             key (str): The key to delete
-
-        Returns:
-
-            None
 
         Raises:
 
@@ -222,10 +206,6 @@ class Event(object):
 
     def dump(self):
         '''Dumps the content of the event.
-
-        Args:
-
-            None
 
         Returns:
 
@@ -310,13 +290,12 @@ class Event(object):
 
         return self.data["bulk"]
 
-    def render(self, template, key="data"):
+    def render(self, template):
         '''Returns a formatted string using the provided template and key
 
         Args:
 
             template (str): A string representing the Jinja2 template.
-            key (str): The name of key providing the values for the template
 
         Returns:
 
@@ -328,7 +307,7 @@ class Event(object):
         '''
 
         try:
-            return Template(template).render(self.get(key))
+            return Template(template).render(self.dump())
         except Exception as err:
             raise InvalidData("Failed to render template. Reason: %s" % (err))
 
@@ -339,11 +318,6 @@ class Event(object):
 
             value (str, int, float, dict, list): The value to assign.
             key (str): The key to store the value
-
-        Returns:
-
-            None
-
         '''
         result = value
         for name in reversed(key.split('.')):
