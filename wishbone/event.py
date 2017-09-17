@@ -3,7 +3,7 @@
 #
 #  event.py
 #
-#  Copyright 2017 Jelle Smet <development@smetj.net>
+#  Copyright 2017 Jelle Smet ``development@smetj.net``
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ from copy import deepcopy
 EVENT_RESERVED = ["timestamp", "version", "data", "tmp", "errors", "uuid", "uuid_previous", "cloned", "bulk", "ttl", "tags"]
 
 
-def extractBulkItems(event, selection):
+def extractBulkItemValues(event, selection):
     '''Yields a field from all events in the bulk event.
 
     Args:
@@ -51,6 +51,23 @@ def extractBulkItems(event, selection):
             yield Event().slurp(e).get(selection)
 
 
+def extractBulkItems(event):
+    '''Yields all the events from a bulk event.
+
+    Args:
+
+        event (wishbone.event.Event): The wishbone event in bulk mode.
+
+    Yields:
+
+        `wishbone.event.Event`: The value of the event
+    '''
+
+    if event.isBulk():
+        for e in event.data["data"]:
+            yield Event().slurp(e)
+
+
 class Event(object):
 
     '''The Wishbone event object.
@@ -60,7 +77,7 @@ class Event(object):
 
     Args:
 
-        data (dict/list/string/int/float): The data to assign to the <data> field.
+        data (dict/list/string/int/float): The data to assign to the ``data`` field.
         ttl (int): The TTL value for the event.
         bulk (bool): Initialize the event as a bulk event
         bulk_size (int): The number of events the bulk can hold.
@@ -106,7 +123,7 @@ class Event(object):
 
         Raises:
 
-            InvalidData: Either the event is not of type Bulk or <event> is
+            InvalidData: Either the event is not of type Bulk or ``event`` is
                          not an wishbone.event.Event instance.
         '''
 
@@ -117,7 +134,7 @@ class Event(object):
 
                 self.data["data"].append(event.dump())
             else:
-                raise InvalidData("<event> should be of type wishbone.event.Event.")
+                raise InvalidData("'event' should be of type wishbone.event.Event.")
         else:
             raise InvalidData("This instance is not initialized as a bulk event.")
 
@@ -126,7 +143,7 @@ class Event(object):
 
         Returns:
 
-            class: A ``wishbone.event.Event`` instance
+            class: A ````wishbone.event.Event```` instance
 
 
         '''
@@ -186,7 +203,7 @@ class Event(object):
 
         Raises:
 
-            Exception: Deleting the root of a reserved keyword such as <data> or <tags>.
+            Exception: Deleting the root of a reserved keyword such as ``data`` or ``tags``.
             KeyError: When a non-existing key is referred to.
         '''
 
@@ -217,7 +234,7 @@ class Event(object):
         return d.data
 
     def get(self, key="data"):
-        '''Returns the value of <key>.
+        '''Returns the value of ``key``.
 
         Args:
 
@@ -252,7 +269,7 @@ class Event(object):
                 raise KeyError(key)
 
     def has(self, key="data"):
-        '''Returns a bool indicating the event has <key>
+        '''Returns a bool indicating the event has ``key``
 
         Args:
 
@@ -275,11 +292,7 @@ class Event(object):
             return True
 
     def isBulk(self):
-        '''Tells whether event is <bulk> or not.
-
-        Args:
-
-            None
+        '''Tells whether event is ``bulk`` or not.
 
 
         Returns:
@@ -312,7 +325,7 @@ class Event(object):
             raise InvalidData("Failed to render template. Reason: %s" % (err))
 
     def set(self, value, key="data"):
-        '''Sets the value of <key>.
+        '''Sets the value of ``key``.
 
         Args:
 
@@ -326,15 +339,17 @@ class Event(object):
         self.__dictMerge(self.data, result)
 
     def slurp(self, data):
-        '''Expects <data> to be a dict representation of an <Event> and
+        '''Expects ``data`` to be a dict representation of an ``Event`` and
         alligns this event to it.
 
         The timestamp field will be reset to the time this method has been
         called.
 
+
         Args:
 
             data (dict): The dict object containing the complete event.
+
 
         Returns:
 
@@ -343,7 +358,7 @@ class Event(object):
 
         Raises:
 
-            InvalidData:  `data` does not contain valid fields to build
+            InvalidData:  ``data`` does not contain valid fields to build
                                   an event
         '''
         try:
@@ -375,17 +390,17 @@ class Event(object):
     raw = dump
 
     def __dictMerge(self, dct, merge_dct):
-        ''' Recursive dict merge. Inspired by :meth:``dict.update()``, instead of
+        ''' Recursive dict merge. Inspired by :meth:````dict.update()````, instead of
         updating only top-level keys, __dictMerge recurses down into dicts nested
-        to an arbitrary depth, updating keys. The ``merge_dct`` is merged into
-        ``dct``.
+        to an arbitrary depth, updating keys. The ````merge_dct```` is merged into
+        ````dct````.
 
         Stolen from https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
 
         Args:
 
             dct(dict): The dictionary onto which the merge is executed
-            merge_dct(dict: dict merged into `dct`
+            merge_dct(dict: dict merged into ``dct``
 
         Returns:
 

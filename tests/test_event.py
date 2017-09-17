@@ -217,3 +217,29 @@ def test_event_uuid():
 
     e = Event()
     assert e.get('uuid')
+
+
+def test_extractBulkItems():
+
+    from wishbone.event import extractBulkItems
+
+    e = Event(bulk=True)
+    e.appendBulk(Event({"one": 1}))
+    e.appendBulk(Event({"two": 2}))
+    e.appendBulk(Event({"three": 3}))
+
+    for item in extractBulkItems(e):
+        assert isinstance(item, Event)
+
+
+def test_extractBulkItemValues():
+
+    from wishbone.event import extractBulkItemValues
+
+    e = Event(bulk=True)
+    e.appendBulk(Event({"one": 1}))
+    e.appendBulk(Event({"two": 2}))
+    e.appendBulk(Event({"three": 3}))
+
+    for item in extractBulkItemValues(e, "data"):
+        assert item in [{"one": 1}, {"two": 2}, {"three": 3}]
