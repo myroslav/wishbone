@@ -161,6 +161,7 @@ setup(
             'random_integer = wishbone.function.template.random_integer:RandomInteger',
             'random_uuid = wishbone.function.template.random_uuid:RandomUUID',
             'random_word = wishbone.function.template.random_word:RandomWord',
+            'regex = wishbone.function.template.regex:Regex',
             'strftime = wishbone.function.template.strftime:STRFTime'
         ]
     }

@@ -90,3 +90,15 @@ def test_wishbone_function_template_strftime():
 
     f = ComponentManager().getComponentByName("wishbone.function.template.strftime")()
     assert f.lookup(0, 'YYYY-MM-DD HH:mm:ss ZZ') == '1970-01-01 00:00:00 +00:00'
+
+
+def test_wishbone_function_template_regexTrue():
+
+    f = ComponentManager().getComponentByName("wishbone.function.template.regex")()
+    assert f.lookup('.*', "hello")
+
+
+def test_wishbone_function_template_regexFalse():
+
+    f = ComponentManager().getComponentByName("wishbone.function.template.regex")()
+    assert not f.lookup('.*$.', "hello")

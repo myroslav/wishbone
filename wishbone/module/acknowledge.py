@@ -56,17 +56,16 @@ class AckList(object):
 
 class Acknowledge(FlowModule):
 
-    '''**Lets events pass or not based on some event value present or not in a lookup table.**
+    '''**Forwards or drops events by acknowleding values.**
 
-    This module stores a value <ack_id> from passing events in a list and
-    only let's events go through for which the <ack_id> value is not in the
-    list.
+    This module stores the value of field `ack_id` from each incoming event.
+    Subsequent events with the same `ack_id` field value will be dropped until
+    the `ack_id` is removed by having it acknowledged.
 
-    <ack_id> can be removed from the list by sending the event into the
-    <acknowledge> queue.
+    `ack_id' can be acknowledged by sending the event to the `acknowledge`
+    queue.
 
-    <ack_id> should some unique identifier to make sure that any following
-    <modules are not processing events with the same datastructure.
+    The `ack_id` field value should be an  unique value.
 
     Typically, downstream modules's <successful> and/or <failed> queues are
     sending events to the <acknowledge> queue.
