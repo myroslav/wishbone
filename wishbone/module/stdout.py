@@ -24,7 +24,7 @@
 from gevent import monkey; monkey.patch_sys(stdin=False, stdout=True, stderr=False)
 from wishbone.actor import Actor
 from wishbone.module import OutputModule
-from wishbone.event import extractBulkItems
+from wishbone.event import extractBulkItemValues
 from os import getpid
 from colorama import init, Fore, Back, Style
 import sys
@@ -133,7 +133,7 @@ class STDOUT(OutputModule):
     def consume(self, event):
 
         if event.isBulk():
-            data = "\n".join([str(item) for item in extractBulkItems(event, self.kwargs.selection)])
+            data = "\n".join([str(item) for item in extractBulkItemValues(event, self.kwargs.selection)])
         else:
             data = event.get(
                 event.kwargs.selection
