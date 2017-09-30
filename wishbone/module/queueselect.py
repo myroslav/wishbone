@@ -114,12 +114,12 @@ class QueueSelect(ProcessModule):
             self.handleQueueSelect(
                 template_name=template.name,
                 queue_list=template.queue,
-                payload=template["payload"],
+                payload=template.get("payload", {}),
                 event=event)
 
         for file_name, file_content in self.template_loader.dump().items():
             try:
-                queue_name = event.render(file_content["queue"], ".")
+                queue_name = event.render(file_content["queue"])
             except InvalidData as err:
                 self.logging.error("Failed to render template '%s'. Reason: %s" % (err))
             else:
@@ -146,10 +146,10 @@ class QueueSelect(ProcessModule):
                 queue_payload = {
                     "original_event_id": event.get('uuid'),
                     "queue": queue_name,
-                    "payload": payload.get(queue_name, {})
+                    "payload": payload
                 }
                 e = event.clone()
-                e.set(queue_payload, "@tmp.%s" % (self.name))
+                e.set(queue_payload, "tmp.%s" % (self.name))
 
                 # Submit a clone of the event to the required queue
                 self.submit(e, queue_name)
