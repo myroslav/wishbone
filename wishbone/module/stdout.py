@@ -21,6 +21,7 @@
 #  MA 02110-1301, USA.
 #
 #
+
 from gevent import monkey; monkey.patch_sys(stdin=False, stdout=True, stderr=False)
 from wishbone.actor import Actor
 from wishbone.module import OutputModule
@@ -74,8 +75,11 @@ class STDOUT(OutputModule):
     Parameters:
 
         - selection(str)("data")
-           |  The part of the event to submit externally.
-           |  Use an empty string to refer to the complete event.
+           |  The event key to submit.
+
+        - payload(str)(None)
+           |  The string to submit.
+           |  If defined takes precedence over `selection`.
 
         - counter(bool)(False)
            |  Puts an incremental number for each event in front
@@ -110,7 +114,7 @@ class STDOUT(OutputModule):
            |  Incoming events.
     '''
 
-    def __init__(self, actor_config, selection="data", counter=False, prefix="", pid=False, colorize=False, foreground_color="WHITE", background_color="RESET", color_style="NORMAL"):
+    def __init__(self, actor_config, selection="data", payload=None, counter=False, prefix="", pid=False, colorize=False, foreground_color="WHITE", background_color="RESET", color_style="NORMAL"):
         Actor.__init__(self, actor_config)
 
         self.__validateInput(foreground_color, background_color, color_style)
@@ -132,12 +136,16 @@ class STDOUT(OutputModule):
 
     def consume(self, event):
 
-        if event.isBulk():
-            data = "\n".join([str(item) for item in extractBulkItemValues(event, self.kwargs.selection)])
+        print(event.kwargs.payload)
+        if event.kwargs.payload is None:
+            if event.isBulk():
+                data = "\n".join([str(item) for item in extractBulkItemValues(event, self.kwargs.selection)])
+            else:
+                data = event.get(
+                    event.kwargs.selection
+                )
         else:
-            data = event.get(
-                event.kwargs.selection
-            )
+            data = event.kwargs.payload
 
         data = self.encode(data)
 

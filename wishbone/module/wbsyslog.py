@@ -22,8 +22,8 @@
 #
 #
 
-from wishbone.actor import Actor
 from wishbone.module import OutputModule
+from wishbone.event import extractBulkItemValues
 import syslog
 import sys
 import os
@@ -50,10 +50,12 @@ class Syslog(OutputModule):
            |  If not provided the script name is used.
            |  (Can be a dynamic value)
 
-        - message(str)("{data[message]}")*
-           |  The syslog id string.
-           |  If not provided the script name is used.
-           |  (Can be a dynamic value)
+        - selection(str)("data")
+           |  The event key to submit.
+
+        - payload(str)(None)
+           |  The string to submit.
+           |  If defined takes precedence over `selection`.
 
     Queues:
 
@@ -61,8 +63,8 @@ class Syslog(OutputModule):
            |  incoming events
     '''
 
-    def __init__(self, actor_config, level=5, ident=os.path.basename(sys.argv[0]), message="{data[message]}"):
-        Actor.__init__(self, actor_config)
+    def __init__(self, actor_config, level=5, ident=os.path.basename(sys.argv[0]), selection="data", payload=None):
+        OutputModule.__init__(self, actor_config)
 
         self.pool.createQueue("inbox")
         self.registerConsumer(self.consume, "inbox")
@@ -73,15 +75,22 @@ class Syslog(OutputModule):
 
     def consume(self, event):
 
-        if event.isBulk():
-            for e in event.dump():
-                message = e.render(self.kwargs.message)
-                level = e.render(self.kwargs.level)
-                syslog.syslog(level, message)
+        if event.kwargs.payload is None:
+            if event.isBulk():
+                data = "\n".join([str(item) for item in extractBulkItemValues(event, event.kwargs.selection)])
+            else:
+                data = event.get(
+                    event.kwargs.selection
+                )
         else:
-            message = event.render(self.kwargs.message)
-            level = event.render(self.kwargs.level)
-            syslog.syslog(level, message)
+            data = event.kwargs.payload
+
+        data = self.encode(data)
+
+        syslog.syslog(
+            event.kwargs.level,
+            data
+        )
 
     def postHook(self):
         syslog.closelog()
