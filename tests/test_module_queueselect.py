@@ -169,3 +169,36 @@ def test_module_queueselect_regex():
     queueselect.stop()
 
 
+def test_module_queueselect_novalidqueue():
+
+    actor_config = ActorConfig('queueselect', 100, 1, {}, "", disable_exception_handling=True)
+
+    templates = [
+        {
+            "name": "rule_1",
+            "queue": "{{ 'no_such_queue_1' if data.one == 1 else 'no_such_queue_2' }}",
+        },
+        {
+            "name": "rule_2",
+            "queue": "{{ 'no_such_queue_1' if data.one == 1 else 'no_such_queue_2' }}",
+        }
+    ]
+
+    queueselect = QueueSelect(actor_config, templates=templates)
+    queueselect.pool.queue.inbox.disableFallThrough()
+    queueselect.pool.queue.outbox.disableFallThrough()
+    queueselect.pool.queue.nomatch.disableFallThrough()
+
+    queueselect.pool.createQueue("queue_1")
+    queueselect.pool.queue.queue_1.disableFallThrough()
+
+    queueselect.pool.createQueue("queue_2")
+    queueselect.pool.queue.queue_2.disableFallThrough()
+
+    queueselect.start()
+
+    queueselect.pool.queue.inbox.put(Event({"one": 1, "two": 2}))
+
+    assert getter(queueselect.pool.queue.nomatch).get() == {"one": 1, "two": 2}
+
+    queueselect.stop()
