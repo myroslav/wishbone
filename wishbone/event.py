@@ -29,7 +29,7 @@ from jinja2 import Template
 from copy import deepcopy
 
 
-EVENT_RESERVED = ["timestamp", "version", "data", "tmp", "errors", "uuid", "uuid_previous", "cloned", "bulk", "ttl", "tags"]
+EVENT_RESERVED = ["timestamp", "data", "tmp", "errors", "uuid", "uuid_previous", "cloned", "bulk", "ttl", "tags"]
 
 
 def extractBulkItemValues(event, selection):
@@ -104,8 +104,6 @@ class Event(object):
 
             "uuid_previous": [
             ],
-            "version": 1,
-
         }
         if bulk:
             self.data["data"] = []
@@ -365,7 +363,6 @@ class Event(object):
             assert isinstance(data, dict), "event.slurp() expects a dict."
             for item in [
                 ("timestamp", float),
-                ("version", int),
                 ("data", None),
                 ("tmp", dict),
                 ("errors", dict),
