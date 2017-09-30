@@ -75,12 +75,12 @@ class Syslog(OutputModule):
 
         if event.isBulk():
             for e in event.dump():
-                message = e.render(self.kwargs.message, '.')
-                level = e.render(self.kwargs.level, '.')
+                message = e.render(self.kwargs.message)
+                level = e.render(self.kwargs.level)
                 syslog.syslog(level, message)
         else:
-            message = event.render(self.kwargs.message, '.')
-            level = event.render(self.kwargs.level, '.')
+            message = event.render(self.kwargs.message)
+            level = event.render(self.kwargs.level)
             syslog.syslog(level, message)
 
     def postHook(self):
