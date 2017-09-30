@@ -61,6 +61,7 @@ class RenderKwargs(object):
         )
         self.env_template.globals.update(functions)
         self.__original_kwargs = data
+        self.template_strings = {}
         self.__template_kwargs = self.__initialize_templates(data, functions)
         self.__rendered_kwargs = {}
         self.render(None, {})
@@ -90,7 +91,8 @@ class RenderKwargs(object):
                 try:
                     return data.render(**event_content)
                 except Exception as err:
-                    return "## invalid template: %s" % (err)
+                    return "#error: %s#" % (err)
+                    # return self.template_strings[data]
             elif isinstance(data, dict):
                 result = {}
                 for key, value in data.items():
@@ -120,7 +122,9 @@ class RenderKwargs(object):
             if isinstance(data, str):
                 try:
                     if len(list(self.env_template.parse(data).find_all(jinja2.nodes.Name))) > 0:
-                        return self.env_template.from_string(data)
+                        t = self.env_template.from_string(data)
+                        self.template_strings[t] = data
+                        return t
                     else:
                         return data
                 except Exception as err:
@@ -278,6 +282,13 @@ class Actor(object):
 
         self.greenlets.consumer.append(spawn(self.__consumer, function, queue))
 
+    def renderEventKwargs(self, event, queue=None):
+        event.kwargs = self.__renderKwargs.render(
+            queue_context=queue,
+            event_content=event.dump()
+        )
+        return event
+
     def renderKwargs(self):
 
         self.kwargs = self.__renderKwargs.render()
@@ -401,10 +412,7 @@ class Actor(object):
             event = self.pool.getQueue(queue).get()
 
             # Render kwargs relative to the event's content and make these accessible under event.kwargs
-            event.kwargs = self.__renderKwargs.render(
-                queue_context=queue,
-                event_content=event.dump()
-            )
+            event = self.renderEventKwargs(event=event, queue=queue)
 
             # Validate TTL
             try:
