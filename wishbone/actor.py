@@ -207,6 +207,8 @@ class Actor(object):
         self.__renderKwargs = self.__setupRenderKwargs()
         self.renderKwargs()
 
+        self.__executeSanityChecks()
+
     def connect(self, source, destination_module, destination_queue):
         '''Connects the <source> queue to the <destination> queue.
         In fact, the source queue overwrites the destination queue.'''
@@ -445,6 +447,14 @@ class Actor(object):
             finally:
                 # Unset the current event uuid to the logger object
                 self.logging.setCurrentEventID(None)
+
+    def __executeSanityChecks(self):
+
+        if self.MODULE_TYPE == ModuleType.OUTPUT:
+            if "payload" not in self.kwargs.keys():
+                raise ModuleInitFailure("An 'output' module should always have a 'payload' parameter. Not a configuration error.")
+            if "selection" not in self.kwargs.keys():
+                raise ModuleInitFailure("An 'output' module should always have a 'selection' parameter. Not a configuration error")
 
     def __generateEventWithPayload(self, data={}):
         '''
