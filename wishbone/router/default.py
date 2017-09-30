@@ -147,7 +147,7 @@ class Default(object):
         try:
             setattr(self.module_pool.module, actor_config.name, module(actor_config, **arguments))
         except Exception as err:
-            raise ModuleInitFailure("Problem loading module %s.  Reason: %s" % (actor_config.name, err))
+            raise ModuleInitFailure("Problem loading module '%s'.  Reason: %s" % (actor_config.name, err))
 
     def stop(self):
         '''Stops all running modules.'''
