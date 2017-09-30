@@ -487,10 +487,10 @@ class Actor(object):
 
         if self.MODULE_TYPE == ModuleType.INPUT:
             if not hasattr(self, "decode") and self.config.protocol_name is None:
-                self.logging.debug("This 'Input' type module has no decoder method set. Setting dummy decoder.")
+                self.logging.debug("This 'Input' module has no decoder method set. Setting dummy decoder.")
                 self.setDecoder("wishbone.protocol.decode.dummy")
             if self.config.protocol_name is not None:
-                self.logging.debug("This 'Input' type module has no decoder method set. Setting the configured one.")
+                self.logging.debug("This 'Input' module has '%s' decoder configured." % (self.config.protocol_name))
                 self.decode = self.config.protocol_function
 
             if self.config.protocol_event is True:
@@ -500,10 +500,10 @@ class Actor(object):
 
         if self.MODULE_TYPE == ModuleType.OUTPUT:
             if not hasattr(self, "encode") and self.config.protocol_name is None:
-                self.logging.debug("This 'Output' type module has no encoder method set. Setting dummy encoder.")
+                self.logging.debug("This 'Output' module has no encoder method set. Setting dummy encoder.")
                 self.setEncoder("wishbone.protocol.encode.dummy")
             if self.config.protocol_name is not None:
-                self.logging.debug("This 'Output' type module has no encoder method set. Setting the configured one.")
+                self.logging.debug("This 'Output' module has '%s' encoder configured." % (self.config.protocol_name))
                 self.encode = self.config.protocol_function
 
     def __setupRenderKwargs(self):
