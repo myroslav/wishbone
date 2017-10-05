@@ -1,0 +1,7 @@
+========
+Funtions
+========
+
+.. toctree::
+    template
+    module

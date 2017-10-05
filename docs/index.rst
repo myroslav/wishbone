@@ -1,116 +1,183 @@
-========
-Wishbone
-========
+.. image:: pics/ascii.png
+.. image:: pics/GitHub-Mark-64px.png
+    :align: right
+    :target: https://github.com/smetj/wishbone
+**A pragmatists framework to build reactive event processing solutions.**
 
-**A Python framework to build event stream processing servers**
+-----
 
-https://github.com/smetj/wishbone
+Introduction
+============
 
-What?
-=====
+Wishbone is a **Python** framework to build reactive event processing
+solutions by combining and connecting modules into a :ref:`processing pipeline
+<processing pipeline>` through which :ref:`events <events>` flow, modify and
+trigger interactions with remote services.
 
-Wishbone is a Python framework for building servers to read, process and write
-infinite event streams by combining and connecting modules into a `processing
-pipeline`_ through which `structured data`_ flows, changes, triggers logic and
-interacts with external services.
+The framework can be used to implement a wide area of solutions such as
+`mashup enablers`_, `ETL servers`_, `stream processing servers`_, `webhook
+services`_ , `ChatOps services`_, bots and all kinds of event driven
+automation.
 
-Wishbone can be used to implement solutions for a wide spectrum of tasks from
-building `mashup enablers`_ and `ETL servers`_ to `CEP`_ and `stream
-processing`_ servers.
-
-Wishbone comes with a set of useful `builtin event`_ and *lookup* modules with
-many more `external modules`_ available and ready to be used.
-
-The goal of the project is to provide a simple and pleasant yet solid and
-flexible framework which provides the user a toolbox to be creative building
-custom solutions with minimal effort and development time.
-
-How?
-====
-
-Servers can be created directly in Python or by bootstrapping an instance
-using a YAML file directly from CLI.
-
-    *The following "hello world" example creates a server which continuously
-    prints "Hello world!" to STDOUT.*
-
-For this we connect `wishbone.input.testevent`_ to `wishbone.output.stdout`_:
-
-In Python
----------
-
-.. code-block:: python
-
-    from wishbone.module.testevent import TestEvent
-    from wishbone.module.stdout import STDOUT
-    from wishbone.router import Default
-    from wishbone.actor import ActorConfig
-
-    input_config = ActorConfig("input")
-    output_config = ActorConfig("output")
-
-    router = Default()
-    router.registerModule(TestEvent, input_config, {"message": "Hello world!"})
-    router.registerModule(STDOUT, output_config)
-    router.connectQueue("input.outbox", "output.inbox")
-    router.start()
-    try:
-        router.block()
-    except KeyboardInterrupt:
-        router.stop()
+The goal of the project is to provide an expressive and ops friendly framework
+to build pragmatic (micro)services.
 
 
-Using a bootstrap file
-----------------------
+Fizzbuzz Example
+================
 
-.. code-block:: YAML
+This `example` Wishbone server accepts `JSON` data over http on the ``/colors``
+endpoint and replies to the client with the defined ``response`` for it. The
+``categorize`` module instance validates whether the value of ``color`` is
+either `red, green or blue` and forwards the event to the ``requestbin``
+module instance if so. If not, the complete event is printed to STDOUT. The
+``requestbin`` module submits the event to the defined ``url`` extended by the
+`requestbin_id` value defined by the user.  After submitting the event
+successfully to the defined ``url``, the complete event is printed to STDOUT.
 
-    modules:
-      input:
-        module: wishbone.input.testevent
-        arguments:
-          message : Hello World!
+Depending on the modules chosen you
 
-      stdout:
-        module: wishbone.output.stdout
-
-    routingtable:
-      - input.outbox            -> stdout.inbox
-
-
-The server can be started and stopped using the wishbone CLI:
+Server
+------
 
 .. code-block:: bash
 
-    $ wishbone debug --config hello_world.yaml
+    $ wishbone start --config fizzbuzz.yaml --nofork
+    Instance started in foreground with pid 25260
+    ... snip ...
+    2017-09-30T14:18:46.7928+00:00 wishbone[25260] informational input: Serving on 0.0.0.0:19283 with a connection poolsize of 1000.
 
+Bootstrap file
+--------------
+
+.. code-block:: yaml
+
+    ---
+    protocols:
+      json_decode:
+        protocol: wishbone.protocol.decode.json
+      json_encode:
+        protocol: wishbone.protocol.encode.json
+
+    modules:
+      input:
+        module: wishbone.module.input.httpserver
+        protocol: json_decode
+        arguments:
+          response:
+            - colors: >
+                Hi '{{tmp.input.user_agent}}' on '{{tmp.input.remote_addr}}'. Your id is '{{uuid}}'. Thank you for choosing Wishbone ;)'
+
+      categorize:
+        module: wishbone.module.flow.queueselect
+        arguments:
+          templates:
+            - name: primary
+              queue: >
+                {{ 'primary' if data.color in ("red", "green", "blue") else 'not_primary' }}
+              payload:
+                greeting: Hello
+                message: '{{data.color}} is an awesome choice'
+
+      funnel:
+        module: wishbone.module.flow.funnel
+
+      requestbin:
+        protocol: json_encode
+        module: wishbone.module.output.http
+        arguments:
+          method: PUT
+          url: 'https://requestb.in/{{data.requestbin_id}}'
+          selection: tmp.categorize.payload
+
+      stdout:
+        module: wishbone.module.output.stdout
+        protocol: json_encode
+        arguments:
+          selection: .
+
+    routingtable:
+      - input.colors           -> categorize.inbox
+
+      - categorize.primary     -> requestbin.inbox
+      - categorize.not_primary -> funnel.not_primary
+
+      - requestbin.success     -> funnel.requestbin
+
+      - funnel.outbox          -> stdout.inbox
+    ...
+
+
+Client
+------
+
+.. code-block:: bash
+
+    $ curl -d '{"color":"red", "requestbin_id": "abcdefg"}' http://localhost:19283/colors
+    Hi 'curl/7.53.1' on '127.0.0.1'. Your id is 'd805df4c-816e-4af2-bb32-8454cae366aa'.
+
+
+Server STDOUT after submitting event
+------------------------------------
+
+.. code-block:: json
+
+  {
+    "cloned": true,
+    "bulk": false,
+    "data": {
+      "color": "red",
+      "requestbin_id": "abcdefg"
+    },
+    "errors": {},
+    "tags": [],
+    "timestamp": 1506791239.4684186,
+    "tmp": {
+      "input": {
+        "remote_addr": "127.0.0.1",
+        "request_method": "POST",
+        "user_agent": "curl/7.53.1",
+        "queue": "colors",
+        "username": "",
+        "response": "Hi 'curl/7.53.1' on '127.0.0.1'. Your id is 'd805df4c-816e-4af2-bb32-8454cae366aa'. Thank you for choosing Wishbone ;)"
+      },
+      "categorize": {
+        "original_event_id": "94ff6c3b-3c83-41c5-b5b7-091f244e85a5",
+        "queue": "primary",
+        "payload": {
+          "greeting": "Hello",
+          "message": "red is an awesome choice"
+        }
+      },
+      "requestbin": {
+        "server_response": "ok",
+        "status_code": 200,
+        "url": "https://requestb.in/abcdefg",
+        "method": "PUT",
+        "useragent": "wishbone.module.output.http/3.0.0"
+      }
+    },
+    "ttl": 251,
+    "uuid_previous": [
+      "94ff6c3b-3c83-41c5-b5b7-091f244e85a5"
+    ],
+    "uuid": "d805df4c-816e-4af2-bb32-8454cae366aa"
+  }
 
 
 .. toctree::
     :hidden:
 
     installation/index
-    event_modules/index
-    lookup_modules/index
-    events/index
-    router/index
-    bootstrap/index
-    examples/index
-    miscellaneous
+    components/index
+    server/index
+    scenarios/index
+    python/index
 
 
-.. _builtin event: event_modules/index.html
-.. _structured data: events/index.html
-.. _processing pipeline: examples/event_pipeline/index.html
-.. _bootstrap: bootstrap/index.html
-
-.. _servers: server/index.html
-.. _builtin: modules/builtin%20modules.html
-.. _external modules: event_modules/external_modules/index.html
-.. _Bootstrap files: server/bootstrap%20files.html
-.. _wishbone.input.testevent: event_modules/builtin_modules/index.html#wishbone-input-testevent
-.. _wishbone.output.stdout: event_modules/builtin_modules/index.html#wishbone-output-stdout
 .. _mashup enablers: https://en.wikipedia.org/wiki/Mashup_(web_application_hybrid)#Mashup_enabler
 .. _ETL servers: https://en.wikipedia.org/wiki/Extract,_transform,_load
-.. _stream processing: https://en.wikipedia.org/wiki/Stream_processing
+.. _stream processing servers: https://en.wikipedia.org/wiki/Stream_processing
 .. _CEP: https://en.wikipedia.org/wiki/Complex_event_processing
+.. _ChatOps services: https://www.google.com/search?newwindow=1&q=chatops
+.. _webhook services: https://en.wikipedia.org/wiki/Webhook

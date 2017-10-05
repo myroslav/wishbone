@@ -1,6 +1,10 @@
+.. _external modules:
 ================
 External Modules
 ================
+
+.. attention::
+   Not all modules are compatible with Wishbone version 3 and higher.
 
 There's a list of module which are developed and maintained outside the
 Wishbone framework itself.

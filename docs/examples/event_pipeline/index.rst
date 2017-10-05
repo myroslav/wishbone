@@ -1,3 +1,4 @@
+.. _processing pipeline:
 ==============
 Event pipeline
 ==============
