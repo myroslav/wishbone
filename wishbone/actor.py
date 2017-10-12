@@ -388,6 +388,7 @@ class Actor(object):
                 self.logging.error("No such queue %s. Event with uuid %s dropped." % (queue, event.get('uuid')))
                 break
             except QueueFull:
+                self.logging.warning("Queue '%s' is full and stalls the event pipeline. You should probably look into this." % (queue))
                 sleep(0.1)
 
     def __applyFunctions(self, queue, event):
