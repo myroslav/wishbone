@@ -3,19 +3,28 @@
 Modules
 =======
 
-Besides these,
-there is a collection of :ref:`external modules <external modules>`  which are
+Modules are isolated pieces of code which do not directly invoke each others
+functionality.  They merely act upon the messages coming in to its queues and
+submit messages into another queue for the next module to process.
+Modules run as greenthreads.
+
+Wishbone comes with a set of builtin modules.  Besides these, there's a
+collection of :ref:`external modules <external modules>` available which are
 developed and released seperately from Wishbone itself.
 
-
-output modules should, by convention, provide a <selection> and <payload>
-parameter. If payload is not None, then it takes precendence over selection.
-Selection defines the key content of the event to submit whilst template comes
-up with a string to submit.  <payload> usually makes no sense with bulk events
-
+Wishbone has following module types:
 
 .. toctree::
     input
     output
     flow
     process
+
+
+A module has an arbirary number of parameters but always needs to accept
+:py:class:`wishbone.actorconfig.ActorConfig` which passes Wishbone specific
+the characteristics to it:
+
+.. autoclass:: wishbone.actorconfig.ActorConfig
+    :members:
+

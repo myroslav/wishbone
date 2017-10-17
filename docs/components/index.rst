@@ -17,11 +17,13 @@ installation or the Wishbone project.  If you develop additional components
 outside of the Wishbone project itself, it is advised to do so in its
 dedicated namespace.
 
-``component types``, ``category`` and ``name`` further sub-divide the possible
-Wishbone  components into logical groupings which is further explained in the
-following pages:
+``component type``, ``category`` and ``name`` further categorize the the components into logical groupings.
+
+There are 3 possible component types:
 
 .. toctree::
+    :maxdepth: 1
+
     modules/index
     functions/index
     protocols/index

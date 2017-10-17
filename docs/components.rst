@@ -8,7 +8,7 @@ Components
     :show-inheritance:
     :inherited-members:
 
-.. autoclass:: wishbone.actor.ActorConfig
+.. autoclass:: wishbone.actorconfig.ActorConfig
     :members:
     :show-inheritance:
     :inherited-members:

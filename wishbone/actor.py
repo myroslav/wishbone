@@ -48,8 +48,12 @@ Greenlets = namedtuple('Greenlets', "consumer generic log metric")
 
 class RenderKwargs(object):
     '''
-    This object keeps the rendered kwargs using event content from
-    different queues.
+    Keeps a rendered versions of kwargs templates relative to events consumed
+    from different queues.
+
+    Args:
+        data (dict): A dict representing the raw unprocessed kwargs.
+        functions (dict): A dict Jinja2 template functions.
     '''
 
     def __init__(self, data, functions={}):
@@ -70,6 +74,14 @@ class RenderKwargs(object):
     def get(self, key, queue_context=None):
         '''
         Returns the rendered kwarg value within the given queue_context.
+
+        Args:
+            key (str): The key to return. (can be dotted notation for nested dicts)
+            queue_context (str): The name of the queue
+
+        Returns:
+            The rendered version of the values stored under `key`.
+
         '''
 
         if queue_context not in self.__rendered_kwargs:
@@ -82,8 +94,20 @@ class RenderKwargs(object):
                 return result
 
     def render(self, queue_context=None, event_content={}):
-        # TODO(smetj): opportunity to optimize here. Count number of templates and exit recursion when reached
-        # TODO(smetj): keep a list of references to the acctual templates and only render those
+
+        '''
+        Renders the kwargs values using the provided payload.
+
+        Args:
+            queue_context (str): The name of the queue to store the results
+            event_content (dict): The key values to feed to the templates.
+
+        Returns:
+            None
+
+        Todo:
+            * Opportunity to optimize here?
+        '''
 
         def recurse(data):
 
@@ -192,7 +216,7 @@ class Actor(object):
 
         self.__loop = True
         self.greenlets = Greenlets([], [], [], [])
-        self.greenlets.metric.append(spawn(self.metricProducer))
+        self.greenlets.metric.append(spawn(self.__metricProducer))
 
         self.__run = Event()
         self.__run.clear()
@@ -211,7 +235,16 @@ class Actor(object):
 
     def connect(self, source, destination_module, destination_queue):
         '''Connects the <source> queue to the <destination> queue.
-        In fact, the source queue overwrites the destination queue.'''
+        In fact, the source queue overwrites the destination queue.
+
+        Args:
+            source (str): The name of the source queue
+            destination_module (``wishbone.module``): A Wishbone module instance
+            destination_queue (str): The name of the queue to connect ``source`` to.
+
+        Returns:
+            None
+        '''
 
         if source in self.__children:
             raise QueueConnected("Queue %s.%s is already connected to %s." % (self.name, source, self.__children[source]))
@@ -234,8 +267,32 @@ class Actor(object):
         self.pool.getQueue(source).disableFallThrough()
         self.logging.debug("Connected queue %s.%s to %s.%s" % (self.name, source, destination_module.name, destination_queue))
 
+    def generateEvent(self, data={}):
+        '''
+        Generates a new event.
+
+        This function gets overwritten by either
+        ``self.__generateNormalEvent`` or ``self.__reconstructEvent``.
+
+        Args:
+            data (``data``): The payload to add to the event.
+
+        Returns:
+            wishbone.event.Event: An event containing ``data`` as a payload.
+
+        '''
+
+        raise ModuleInitFailure("Function should get overwritten by either self.__generateNormalEvent or self.__reconstructEvent.")
+
     def getChildren(self, queue=None):
-        '''Returns the queue name <queue> is connected to.'''
+        '''Returns the queue name <queue> is connected to.
+
+        Args:
+            queue (str): Name of the the queue of which children are required.
+
+        Returns:
+            list: A list of queue names
+        '''
 
         if queue is None:
             return [self.__children[q] for q in list(self.__children.keys())]
@@ -243,48 +300,61 @@ class Actor(object):
             return self.__children[queue]
 
     def loop(self):
-        '''The global lock for this module'''
+        '''The global lock for this module.
+
+        Returns:
+            bool: True when module is in running mode. False if not.
+        '''
 
         return self.__loop
 
-    def metricProducer(self):
-        '''A greenthread which collects the queue metrics at the defined interval.'''
-
-        self.__run.wait()
-        hostname = socket.gethostname()
-        while self.loop():
-            for queue in self.pool.listQueues(names=True):
-                for metric, value in list(self.pool.getQueue(queue).stats().items()):
-                    event = Wishbone_Event({
-                        "time": time(),
-                        "type": "wishbone",
-                        "source": hostname,
-                        "name": "module.%s.queue.%s.%s" % (self.name, queue, metric),
-                        "value": value,
-                        "unit": "",
-                        "tags": ()
-                    })
-                    self.submit(event, "metrics")
-            sleep(self.config.frequency)
-
     def postHook(self):
+        '''
+        Is executed when module exits.
+        '''
 
         pass
 
     def preHook(self):
+        '''
+        Is executed when module starts.
+        '''
 
         self.logging.debug("Initialized.")
 
     def registerConsumer(self, function, queue):
-        '''Registers <function> to process all events in <queue>
+        '''
+        Registers <function> to process all events in <queue>
 
-        Do not trap errors.  When <function> fails then the event will be
+        Don't not trap errors here.  When <function> fails then the event will be
         submitted to the "failed" queue,  If <function> succeeds to the
-        success queue.'''
+        success queue.
+
+        Args:
+            function (``function``): The function which processes events
+            queue (str): The name of the queue from which ``function`` will
+                         process the events.
+
+        Returns:
+            None
+        '''
 
         self.greenlets.consumer.append(spawn(self.__consumer, function, queue))
 
     def renderEventKwargs(self, event, queue=None):
+        '''
+        Renders kwargs using the content of ``event`` and stores the result under
+        ``event.kwargs``.
+
+        Args:
+            event (``wishbone.event.Event``): An Event instance
+            queue (str): The queue name so ``RenderKwargs`` can store the results
+                         in the correct queue context.
+
+        Returns:
+            ``wishbone.event.Event``: The provided event instance.
+        '''
+
         event.kwargs = self.__renderKwargs.render(
             queue_context=queue,
             event_content=event.dump()
@@ -292,11 +362,24 @@ class Actor(object):
         return event
 
     def renderKwargs(self):
+        '''
+        Renders kwargs without making use of event content. This is typically
+        used when initiliazing a module and render the defined kwargs which do
+        not need a event data for rendering.
+
+        Returns:
+            None
+        '''
 
         self.kwargs = self.__renderKwargs.render()
 
     def start(self):
-        '''Starts the module.'''
+        '''
+        Starts the module.
+
+        Returns:
+            None
+        '''
 
         self.__setProtocolMethod()
 
@@ -314,11 +397,18 @@ class Actor(object):
         self.stopped = False
 
     def sendToBackground(self, function, *args, **kwargs):
-        '''Executes a function and sends it to the background.
+        '''
 
-        Background tasks are usually running indefinately. When such a
-        background task generates an error, it is automatically restarted and
-        an error is logged.
+        Executes a function and sends it to the background. Such a function
+        should never exit until ``self.loop`` returns ``False``.
+        This `method` wraps ``function`` again in a loop as long ``self.loop``
+        returns ``False`` so that ``function`` is restarted and an error is
+        logged.
+
+        Args:
+            function (``function``): The function which has to be executed.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
         '''
 
         def wrapIntoLoop():
@@ -344,7 +434,10 @@ class Actor(object):
         self.greenlets.generic.append(spawn(wrapIntoLoop))
 
     def stop(self):
-        '''Stops the loop lock and waits until all registered consumers have exit otherwise kills them.'''
+        '''
+        Makes ``self.loop`` return ``False`` and handles shutdown of of the
+        registered background jobs.
+        '''
 
         self.logging.info("Received stop. Initiating shutdown.")
 
@@ -393,6 +486,17 @@ class Actor(object):
 
     def __applyFunctions(self, queue, event):
 
+        '''
+        Executes and applies all registered module functions against the event.
+
+        Args:
+            queue (str): The name of the queue to which the function was registered.
+            event (wishbone.event.Event): The Wishbone
+
+        Returns:
+            wisbone.event.Event: The modified version of ``event``
+        '''
+
         if queue in self.config.module_functions:
             for f in self.config.module_functions[queue]:
                 try:
@@ -404,7 +508,17 @@ class Actor(object):
         return event
 
     def __consumer(self, function, queue):
-        '''Greenthread which applies <function> to each element from <queue>
+        '''
+        Greenthread which applies <function> to each element from <queue>
+
+        Args:
+            function (``function``): The function which has been registered to consume ``queue``.
+
+            queue (str): The name of the queue from which events have to be
+                         consumed and processed by ``function``.
+
+        Returns:
+            None
         '''
 
         self.__run.wait()
@@ -450,29 +564,114 @@ class Actor(object):
                 self.logging.setCurrentEventID(None)
 
     def __executeSanityChecks(self):
+        '''
+        Applies some basic sanity checks related to the module type.
+
+        Raises:
+            ModuleInitFailure: Raised when an unacceptable module misconfiguration occurs.
+        '''
 
         if self.MODULE_TYPE == ModuleType.OUTPUT:
             if "payload" not in self.kwargs.keys():
-                raise ModuleInitFailure("An 'output' module should always have a 'payload' parameter. Not a configuration error.")
+                raise ModuleInitFailure("An 'output' module should always have a 'payload' parameter. This is a programming error.")
             if "selection" not in self.kwargs.keys():
-                raise ModuleInitFailure("An 'output' module should always have a 'selection' parameter. Not a configuration error")
+                raise ModuleInitFailure("An 'output' module should always have a 'selection' parameter. This is a programming error.")
 
-    def __generateEventWithPayload(self, data={}):
+    def __generateNormalEvent(self, data={}):
         '''
-        Generates a new event with payload <data>.
+        Gets mapped to self.generateEvent for `flow`, `process` and `output` type modules.
+
+        Args:
+            data (``data``): The payload to add to the event.
+
+        Returns:
+            wishbone.event.Event: An event containing ``data`` as a payload.
         '''
 
         return Wishbone_Event(data)
 
-    def __generateEvent(self, data={}):
+    def __reconstructEvent(self, data={}):
         '''
-        Generates a new event from <data>. <data> is supposed to contain the
-        metadata fields too.
+
+        Gets mapps to self.generateEvent for `input` type modules and if
+        ``Actor.config.protocol_event`` is ``True``.
+
+        Args:
+            data (dict): The dict representation of ``wishbone.event.Event``.
+
+        Returns:
+            wishbone.event.Event: ``Event`` instance of ``data``
         '''
 
         e = Wishbone_Event()
         e.slurp(data)
         return e
+
+    def __metricProducer(self):
+        '''
+        A greenthread collecting the queue metrics at the defined interval.
+        '''
+
+        self.__run.wait()
+        hostname = socket.gethostname()
+        while self.loop():
+            for queue in self.pool.listQueues(names=True):
+                for metric, value in list(self.pool.getQueue(queue).stats().items()):
+                    event = Wishbone_Event({
+                        "time": time(),
+                        "type": "wishbone",
+                        "source": hostname,
+                        "name": "module.%s.queue.%s.%s" % (self.name, queue, metric),
+                        "value": value,
+                        "unit": "",
+                        "tags": ()
+                    })
+                    self.submit(event, "metrics")
+            sleep(self.config.frequency)
+
+    def __setProtocolMethod(self):
+        '''
+        Sets a ``self.encode`` for `output` modules or ``self.decode`` for
+        `input` modules.
+        '''
+
+        if not hasattr(self, "MODULE_TYPE"):
+            raise InvalidModule("Module instance '%s' seems to be of an incompatible old type." % (self.name))
+
+        if self.MODULE_TYPE == ModuleType.INPUT:
+            if not hasattr(self, "decode") and self.config.protocol_name is None:
+                self.logging.debug("This 'Input' module has no decoder method set. Setting dummy decoder.")
+                self.setDecoder("wishbone.protocol.decode.dummy")
+            if self.config.protocol_name is not None:
+                self.logging.debug("This 'Input' module has '%s' decoder configured." % (self.config.protocol_name))
+                self.decode = self.config.protocol_function
+
+            if self.config.protocol_event is True:
+                self.generateEvent = self.__reconstructEvent
+            else:
+                self.generateEvent = self.__generateNormalEvent
+
+        if self.MODULE_TYPE == ModuleType.OUTPUT:
+            if not hasattr(self, "encode") and self.config.protocol_name is None:
+                self.logging.debug("This 'Output' module has no encoder method set. Setting dummy encoder.")
+                self.setEncoder("wishbone.protocol.encode.dummy")
+            if self.config.protocol_name is not None:
+                self.logging.debug("This 'Output' module has '%s' encoder configured." % (self.config.protocol_name))
+                self.encode = self.config.protocol_function
+
+    def __setupRenderKwargs(self):
+        '''
+        Initial rendering of all templates to self.kwargs
+        '''
+
+        kwargs = {}
+        for key, value in list(inspect.getouterframes(inspect.currentframe())[2][0].f_locals.items()):
+            if key == "self" or isinstance(value, ActorConfig):
+                next
+            else:
+                kwargs[key] = value
+
+        return RenderKwargs(kwargs, self.config.template_functions)
 
     def __validateAppliedFunctions(self):
         '''
@@ -487,47 +686,3 @@ class Actor(object):
         for queue in self.config.module_functions.keys():
             if queue not in queues_w_registered_consumers:
                 raise ModuleInitFailure("Failed to initialize module '%s'. You have functions defined on queue '%s' which doesn't have a registered consumer." % (self.name, queue))
-
-    def __setProtocolMethod(self):
-
-        '''Checks whether the module is of type input or output and whether it
-        has a protocol encoder/decoder set.'''
-
-        if not hasattr(self, "MODULE_TYPE"):
-            raise InvalidModule("Module instance '%s' seems to be of an incompatible old type." % (self.name))
-
-        if self.MODULE_TYPE == ModuleType.INPUT:
-            if not hasattr(self, "decode") and self.config.protocol_name is None:
-                self.logging.debug("This 'Input' module has no decoder method set. Setting dummy decoder.")
-                self.setDecoder("wishbone.protocol.decode.dummy")
-            if self.config.protocol_name is not None:
-                self.logging.debug("This 'Input' module has '%s' decoder configured." % (self.config.protocol_name))
-                self.decode = self.config.protocol_function
-
-            if self.config.protocol_event is True:
-                self.generateEvent = self.__generateEvent
-            else:
-                self.generateEvent = self.__generateEventWithPayload
-
-        if self.MODULE_TYPE == ModuleType.OUTPUT:
-            if not hasattr(self, "encode") and self.config.protocol_name is None:
-                self.logging.debug("This 'Output' module has no encoder method set. Setting dummy encoder.")
-                self.setEncoder("wishbone.protocol.encode.dummy")
-            if self.config.protocol_name is not None:
-                self.logging.debug("This 'Output' module has '%s' encoder configured." % (self.config.protocol_name))
-                self.encode = self.config.protocol_function
-
-    def __setupRenderKwargs(self):
-
-        '''
-        Initial rendering of all templates to self.kwargs
-        '''
-
-        kwargs = {}
-        for key, value in list(inspect.getouterframes(inspect.currentframe())[2][0].f_locals.items()):
-            if key == "self" or isinstance(value, ActorConfig):
-                next
-            else:
-                kwargs[key] = value
-
-        return RenderKwargs(kwargs, self.config.template_functions)
