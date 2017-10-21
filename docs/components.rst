@@ -34,3 +34,4 @@ Components
 .. autoclass:: wishbone.queue.QueuePool
     :members:
 
+

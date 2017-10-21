@@ -10,9 +10,9 @@ Process
 
 ----
 
-``Process`` module bases :py:class:`wishbone.module.Process`:
+``Process`` module bases :py:class:`wishbone.module.ProcessModule`:
 
-.. autoclass:: wishbone.module.Process
+.. autoclass:: wishbone.module.ProcessModule
     :members:
     :show-inheritance:
     :inherited-members:

@@ -36,7 +36,7 @@ class Switch(FlowModule):
 
     The value of <outgoing> can be dynamically set in 2 ways:
 
-        - Using a lookup value.
+        - Using a template function.
 
         - By sending an event to the <switch> queue with the value of
           <outgoing> stored under *data*.

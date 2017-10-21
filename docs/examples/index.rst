@@ -1,6 +1,7 @@
 ========
 Examples
 ========
+.. _examples:
 
 .. toctree::
     event_pipeline/index

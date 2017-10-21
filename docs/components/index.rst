@@ -2,6 +2,16 @@
 Components
 ==========
 
+A Wishbone service consists out of a combination of different components.
+Wishbone has 3 component types:
+
+.. toctree::
+    :maxdepth: 1
+
+    modules/index
+    functions/index
+    protocols/index
+
 
 Components are referred to with a unique name written in dotted format:
 
@@ -19,15 +29,9 @@ dedicated namespace.
 
 ``component type``, ``category`` and ``name`` further categorize the the components into logical groupings.
 
-There are 3 possible component types:
-
-.. toctree::
-    :maxdepth: 1
-
-    modules/index
-    functions/index
-    protocols/index
-
+Each component has an `entrypoint`_ so it can be referred to from a bootstrap
+file. The default Wishbone entrypoints are defined in its setup.py file. A
+component entrypoint is the same as the component name.
 
 An overview of available components can be viewed by using the ``list`` command:
 
@@ -98,3 +102,5 @@ An overview of available components can be viewed by using the ``list`` command:
     |           |                |          |                |         |                                                                         |
     +-----------+----------------+----------+----------------+---------+-------------------------------------------------------------------------+
 
+
+.. _entrypoint: https://docs.pylonsproject.org/projects/pylons-webframework/en/latest/advanced_pylons/entry_points_and_plugins.html

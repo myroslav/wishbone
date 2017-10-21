@@ -147,10 +147,10 @@ setup(
             'syslog = wishbone.module.wbsyslog:Syslog'
         ],
         'wishbone.function.module': [
-            'set = wishbone.function.module.modify_set:modifySetWrapper',
-            'append = wishbone.function.module.modify_append:modifyAppendWrapper',
-            'uppercase = wishbone.function.module.modify_uppercase:modifyUppercaseWrapper',
-            'lowercase = wishbone.function.module.modify_lowercase:modifyLowercaseWrapper',
+            'set = wishbone.function.module.modify_set:ModifySet',
+            'append = wishbone.function.module.modify_append:ModifyAppend',
+            'uppercase = wishbone.function.module.modify_uppercase:ModifyUppercase',
+            'lowercase = wishbone.function.module.modify_lowercase:ModifyLowercase',
         ],
         'wishbone.function.template': [
             'choice = wishbone.function.template.choice:Choice',
