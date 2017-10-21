@@ -188,12 +188,12 @@ class Default(object):
 
         template_functions = {}
         for name, instance in list(self.config.template_functions.items()):
-            template_functions[name] = self.component_manager.getComponentByName(instance.function)(**instance.arguments).lookup
+            template_functions[name] = self.component_manager.getComponentByName(instance.function)(**instance.arguments).get
 
         module_functions = {}
         for name, instance in list(self.config.module_functions.items()):
             self.component_manager.getComponentByName(instance.function)
-            module_functions[name] = self.component_manager.getComponentByName(instance.function)(**instance.arguments)
+            module_functions[name] = self.component_manager.getComponentByName(instance.function)(**instance.arguments).do
 
         for name, instance in list(self.config.modules.items()):
             # Cherrypick the defined functions
