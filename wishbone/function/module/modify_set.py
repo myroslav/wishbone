@@ -23,27 +23,41 @@
 #
 
 
-def modifySetWrapper(data, destination='data'):
+from wishbone.function.module import ModuleFunction
 
-    '''
-    **Sets a field to the desired value.**
 
-    Sets <data> to field <destination>.
-    <data> can be a dynamic value.
+class ModifySet(ModuleFunction):
 
-    Parameters:
+    def __init__(self, data, destination='data'):
+        '''
+        Sets a field to the desired value.
 
-        - data(<anything>)()*
-           |  The data to add to <destination>
-    '''
+        A Wishbone module function which sets data to the desired field.  Data can be a template.
 
-    def modifySet(event):
+        Args:
+            data (str): The value (or template) to apply.
+            destination (str): The destination field
+        '''
 
-        nonlocal data
-        if isinstance(data, str):
-            data = event.render(data)
+        self.data = data
+        self.destination = destination
 
-        event.set(data, destination)
+    def do(self, event):
+        '''
+        The function mapped to the module function.
+
+        Args:
+            event (wishbone.event.Event): The Wishbone event.
+
+        Returns:
+            wishbone.event.Event: The modified event.
+        '''
+
+        if isinstance(self.data, str):
+            data = event.render(self.data)
+        else:
+            data = self.data
+
+        event.set(data, self.destination)
+
         return event
-
-    return modifySet

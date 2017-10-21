@@ -22,21 +22,35 @@
 #
 #
 
+from wishbone.function.module import ModuleFunction
 
-def modifyLowercaseWrapper(source='data', destination='data', *args, **kwargs):
 
-    '''
-    **Puts the desired field in lowercase.**
+class ModifyLowercase(ModuleFunction):
 
-    Puts the desired field in lowercase
+    def __init__(self, source='data', destination='data'):
+        '''
+        Puts the desired field in lowercase.
 
-    Parameters:
+        A Wishbone module function which converts the desired field to lowercase.
 
-        n/a
-    '''
+        Args:
+            source (str): The source field
+            destination (str): The destination field
+        '''
 
-    def modifyLowercase(event):
-        event.set(event.get(source).lower(), destination)
+        self.source = source
+        self.destination = destination
+
+    def do(self, event):
+        '''
+        The function mapped to the module function.
+
+        Args:
+            event (wishbone.event.Event): The Wishbone event.
+
+        Returns:
+            wishbone.event.Event: The modified event.
+        '''
+
+        event.set(event.get(self.source).lower(), self.destination)
         return event
-
-    return modifyLowercase

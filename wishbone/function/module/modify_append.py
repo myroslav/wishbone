@@ -22,37 +22,43 @@
 #
 #
 
+from wishbone.function.module import ModuleFunction
 
-def modifyAppendWrapper(data, destination='tags'):
+
+class ModifyAppend(ModuleFunction):
     '''
-    **Adds <data> to the array <destination>.**
+    Adds a value to an existing list.
 
-    Adds the provided <data> string to the array <destination>.
+    A Wishbone module function which add a value to an existing list.
 
-
-    Parameters:
-
-        - data(str/int/float)()
-           |  data to add to <destination>
-           |  can be a string or number.
-
-        - destination(str)(tags)
-           |  The destination field to append <data> to.
-           |  <destination> is expected to be an array.
+    Args:
+        data (str/int/float/list/dict): The data to add
+        destination (str): The field to add data to.
     '''
 
-    def modifyAppend(event):
+    def __init__(self, data, destination='tags'):
 
-        nonlocal data
-        if isinstance(data, (int, float, str)):
-            lst = event.get(destination)
+        self.data = data
+        self.destination = destination
+
+    def do(self, event):
+        '''
+        The function mapped to the module function.
+
+        Args:
+            event (wishbone.event.Event): The Wishbone event.
+
+        Returns:
+            wishbone.event.Event: The modified event.
+        '''
+
+        if isinstance(self.data, (int, float, str)):
+            lst = event.get(self.destination)
             if isinstance(lst, list):
-                lst.append(data)
-                event.set(lst, destination)
+                lst.append(self.data)
+                event.set(lst, self.destination)
             else:
-                raise Exception("'%s' is not an array" % (destination))
+                raise Exception("'%s' is not an array" % (self.destination))
         else:
-            raise Exception("'%s' is not a number or string." % (data))
+            raise Exception("'%s' is not a number or string." % (self.data))
         return event
-
-    return modifyAppend

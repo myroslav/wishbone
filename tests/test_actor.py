@@ -45,4 +45,4 @@ def test_module():
     actor_config = ActorConfig('DummyTest', 100, 1, {}, "")
     d = DummyModule(actor_config)
     d.start()
-    assert d.decode.__self__.__class__.__name__ == "Dummy"
+    assert d.decode.__self__.__class__.__name__ == "DummyModule"

@@ -22,7 +22,10 @@
 #
 #
 
+from wishbone.error import ModuleInitFailure
+
 
 class ModuleFunction(object):
 
-    pass
+    def do(self):
+        raise ModuleInitFailure("A module function is supposed to have a do() method.")

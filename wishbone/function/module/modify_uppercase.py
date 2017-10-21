@@ -22,21 +22,35 @@
 #
 #
 
+from wishbone.function.module import ModuleFunction
 
-def modifyUppercaseWrapper(source='data', destination='data', *args, **kwargs):
 
-    '''
-    **Puts the desired field in uppercase.**
+class ModifyUppercase(ModuleFunction):
 
-    Puts the desired field in uppercase
+    def __init__(self, source='data', destination='data'):
+        '''
+        Puts the desired field in uppercase.
 
-    Parameters:
+        A Wishbone module function which converts the desired field to uppercase.
 
-        n/a
-    '''
+        Args:
+            source (str): The source field
+            destination (str): The destination field
+        '''
 
-    def modifyUppercase(event):
-        event.set(event.get(source).upper(), destination)
+        self.source = source
+        self.destination = destination
+
+    def do(self, event):
+        '''
+        The function mapped to the module function.
+
+        Args:
+            event (wishbone.event.Event): The Wishbone event.
+
+        Returns:
+            wishbone.event.Event: The modified event.
+        '''
+
+        event.set(event.get(self.source).upper(), self.destination)
         return event
-
-    return modifyUppercase
