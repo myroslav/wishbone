@@ -23,10 +23,13 @@
 #
 
 import pkg_resources
-import re
 from prettytable import PrettyTable
 from wishbone.error import InvalidComponent, NoSuchComponent
 from wishbone.actor import Actor
+from wishbone.function.template import TemplateFunction
+from wishbone.function.module import ModuleFunction
+from wishbone.protocol import Encode
+from wishbone.protocol import Decode
 
 
 class ComponentManager():
@@ -104,6 +107,8 @@ class ComponentManager():
         '''
         Returns the module with name <namespace>.<component_type>.<category>.<name>
 
+        <namespace>.<component_type>.<category>.<name> must be an entrypoint.
+
         Args:
             namespace (str): The component namespace
             component_type (str): The component type.
@@ -127,7 +132,7 @@ class ComponentManager():
         if m is None:
             raise NoSuchComponent("Component %s.%s.%s.%s cannot be found." % (namespace, component_type, category, name))
         else:
-            if callable(m) or issubclass(m, Actor):
+            if issubclass(m, Actor) or issubclass(m, TemplateFunction) or issubclass(m, ModuleFunction) or issubclass(m, Decode) or issubclass(m, Encode):
                 return m
             else:
                 raise InvalidComponent("'%s.%s.%s.%s' is not a valid wishbone component." % (namespace, component_type, category, name))
@@ -191,7 +196,7 @@ class ComponentManager():
         '''
 
         doc = self.getComponent(namespace, component_type, category, name).__doc__
-        doc = re.search('(\*\*.*?\*\*)(.*)', doc, re.DOTALL).group(2)
+
         if doc is None:
             raise InvalidComponent("Component '%s' does not seem to have the expected docstring format." % ())
         else:
@@ -218,7 +223,7 @@ class ComponentManager():
         if doc is None:
             return "The component doesn't have a docstring."
 
-        title = re.search('\*\*(.*?)\*\*(.*)', doc).group(1)
+        title = doc.strip().split('\n')[0].strip('*')
         if title is None:
             raise InvalidComponent("Component '%s' does not seem to have the expected docstring format." % (name))
         else:
