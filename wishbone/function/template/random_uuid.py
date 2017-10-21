@@ -29,19 +29,24 @@ from uuid import uuid4
 class RandomUUID(TemplateFunction):
 
     '''
-    **Returns a uuid value.**
+    Returns a UUID value.
 
-    This function returns a uuid value.
+    A Wishbone template function which returns a UUID.
 
-    - Parameters to initialize the function:
-
+    Args:
         None
 
-    - Parameters to call the function:
-
-        None
     '''
 
-    def lookup(self):
+    def get(self):
+        '''
+        The function mapped to the template function.
+
+        Args:
+            None
+
+        Returns:
+            str: A UUID
+        '''
 
         return str(uuid4())

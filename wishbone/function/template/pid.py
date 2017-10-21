@@ -27,22 +27,27 @@ from os import getpid
 
 
 class PID(TemplateFunction):
-
     '''
-    **Returns the PID of the current process.**
+    Returns the PID of the current process.
 
-    - Parameters to initialize the function:
+    A Wishbone template function which returns the PID of the current process.
 
-        None
-
-    - Parameters to call the function:
-
+    Args:
         None
     '''
 
     def __init__(self):
         self.pid = getpid()
 
-    def lookup(self):
+    def get(self):
+        '''
+        The function mapped to the template function.
+
+        Args:
+            None
+
+        Returns:
+            int: The current PID.
+        '''
 
         return self.pid

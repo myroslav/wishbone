@@ -31,22 +31,16 @@ import io
 class RandomWord(TemplateFunction):
 
     '''
-    **Returns a random word.**
+    Returns a random word.
 
-    This function returns a random word from a wordlist.  Each line is a new
-    word.
+    A Wishbone template function which returns a randomly selected word from a
+    word list.
 
-    - Parameters to initialize the function:
+    Args:
 
-        - filename(str)(None): When value is None, a buildin wordlist is used.
-                               If not a filename of a wordlist is expected.
-
-        - encoding(str)("latin-1"): The encoding used to read the file.
-
-
-    - Parameters to call the function:
-
-        None
+        filename (str): When None, a built-in word list is used otherwise the
+                        referenced file is loaded.
+        encoding (str): The encoding used to read the file.
     '''
 
     def __init__(self, filename=None, encoding="latin-1"):
@@ -62,6 +56,15 @@ class RandomWord(TemplateFunction):
         with io.open(self.filename, encoding=encoding) as f:
             return f.readlines()
 
-    def lookup(self):
+    def get(self):
+        '''
+        The function mapped to the template function.
+
+        Args:
+            None
+
+        Returns:
+            str: A random word
+        '''
 
         return choice(self.wordlist).rstrip()

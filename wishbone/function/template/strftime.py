@@ -27,20 +27,26 @@ import arrow
 
 
 class STRFTime(TemplateFunction):
-
     '''
-    **Returns a formatted version of an epoch timestamp.**
+    Returns a formatted version of an epoch timestamp.
 
-    - Parameters to initialize the function:
+    A Wishbone template function to return a formatted version of an epoch
+    timestamp.
 
+    Args:
         None
-
-    - Parameters to call the function:
-
-        - epoch(int/float)(): Epoch value
-        - template(str)(): The template to which to convert the provided epoch
     '''
 
-    def lookup(self, epoch, template):
+    def get(self, epoch, template):
+        '''
+        The function mapped to the template function.
+
+        Args:
+            epoch (int/float): The epoch value
+            template (str): The Arrow template to generate the time string.
+
+        Returns:
+            str: A timestamp
+        '''
 
         return arrow.get(epoch).format(template)

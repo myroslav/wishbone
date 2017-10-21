@@ -29,19 +29,27 @@ import re
 class Regex(TemplateFunction):
 
     '''
-    **Regex matching on a string.**
+    Regex matching on a string.
 
-    - Parameters to initialize the function:
 
+    A wishbone template function to do regex matching on strings.  Useful for
+    conditional statements.
+
+    Args:
         None
-
-    - Parameters to call the function:
-
-        - pattern(str): The regex to apply
-        - string(str): The data to evaluate
     '''
 
-    def lookup(self, pattern, string):
+    def get(self, pattern, string):
+        '''
+        The function mapped to the template function.
+
+        Args:
+            pattern (str): The regex to apply.
+            string (str): The data to evaluate.
+
+        Returns:
+            Bool: True if regex matches if not False
+        '''
 
         if re.match(pattern, string):
             return True

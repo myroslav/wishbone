@@ -27,18 +27,15 @@ from random import randint
 
 
 class RandomInteger(TemplateFunction):
-    '''**Returns a random integer.**
+    '''
+    Returns a random integer.
 
-    Returns a random integer between <min> and <max>.
+    A Wishbone template function which returns a random integer between <min>
+    and <max>.
 
-    - Parameters to initialize the function:
-
-        - minimum(int)(0): The minimum value
-        - maximum(int)(0): The maximum value
-
-    - Parameters to call the function:
-
-        None
+    Args:
+        minimum (int): The minimum of the range.
+        maximum (int): The maximum of the range.
     '''
 
     def __init__(self, minimum=0, maximum=0):
@@ -46,6 +43,15 @@ class RandomInteger(TemplateFunction):
         self.minimum = minimum
         self.maximum = maximum
 
-    def lookup(self):
+    def get(self):
+        '''
+        The function mapped to the template function.
+
+        Args:
+            None
+
+        Returns:
+            int: A random number.
+        '''
 
         return randint(self.minimum, self.maximum)

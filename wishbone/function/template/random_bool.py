@@ -27,19 +27,24 @@ from random import getrandbits
 
 
 class RandomBool(TemplateFunction):
-
     '''
-    **Randomly returns True or False**
+    Randomly returns True or False.
 
-    - Parameters to initialize the function:
+    A Wishbone template function which returns a random bool.
 
-        None
-
-    - Parameters to call the function:
-
+    Args:
         None
     '''
 
-    def lookup(self):
+    def get(self):
+        '''
+        The function mapped to the template function.
+
+        Args:
+            None
+
+        Returns:
+            int: A random number.
+        '''
 
         return bool(getrandbits(1))

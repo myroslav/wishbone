@@ -27,19 +27,24 @@ from time import time
 
 
 class Epoch(TemplateFunction):
-
     '''
-    **Returns epoch with sub second accuracy as a float.**
+    Returns epoch with sub second accuracy as a float.
 
-    - Parameters to initialize the function:
+    A Wishbone template function which returns the PID of the current process.
 
-        None
-
-    - Parameters to call the function:
-
+    Args:
         None
     '''
 
-    def lookup(self):
+    def get(self):
+        '''
+        The function mapped to the template function.
+
+        Args:
+            None
+
+        Returns:
+            float: The epoch time.
+        '''
 
         return time()

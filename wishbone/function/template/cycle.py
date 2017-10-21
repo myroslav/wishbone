@@ -27,27 +27,33 @@ from itertools import cycle as cycle_array
 
 
 class Cycle(TemplateFunction):
-
     '''
-    **Cycles through the provided array returning the next element.**
+    Cycles through the provided array returning the next element.
+
+    A Wishbone template function which returns the next value of an array.
 
     This function rotates through the elements in the provided array always
     returning the next element.  The order is fixed and when the end is
     reached the first element is returned again.
 
-    - Parameters to initialize the function:
+    Args:
 
-        - values(list)(None): An array of elements to cycle through/
-
-    - Parameters to call the function:
-
-        None
+        values(list): An array of elements to cycle through.
     '''
 
     def __init__(self, values):
 
         self.c = cycle_array(values)
 
-    def lookup(self):
+    def get(self):
+        '''
+        The function mapped to the template function.
+
+        Args:
+            None
+
+        Returns:
+            obj: An element of the provided array.
+        '''
 
         return next(self.c)

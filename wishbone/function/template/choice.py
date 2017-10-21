@@ -27,27 +27,29 @@ from random import choice as choice_array
 
 
 class Choice(TemplateFunction):
-
     '''
-    **Returns a random element from the provided array.**
+    Returns a random element from the provided array.
 
-    This function returns a random element from the provided array.
+    A Wishbone template function which returns a random element from the
+    provided array.
 
-    - Parameters to initialize the function:
-
-        - values(list)(None): An array of elements to choose from
-
-    - Parameters to call the function:
-
-        None
-
-
+    Args:
+        values (list): An array of elements to choose from
     '''
 
     def __init__(self, array):
 
         self.array = array
 
-    def lookup(self):
+    def get(self):
+        '''
+        The function mapped to the template function.
+
+        Args:
+            None
+
+        Returns:
+            obj: An element of the provided array.
+        '''
 
         return choice_array(self.array)
