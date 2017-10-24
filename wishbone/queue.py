@@ -36,13 +36,20 @@ class Container():
 
 class QueuePool():
 
+    RESERVED_QUEUES = [
+        '_failed',
+        '_success',
+        '_logs',
+        '_metrics'
+    ]
+
     def __init__(self, size):
         self.__size = size
         self.queue = Container()
-        self.queue.metrics = Queue(size)
-        self.queue.logs = Queue(size)
-        self.queue.success = Queue(size)
-        self.queue.failed = Queue(size)
+        self.queue._metrics = Queue(size)
+        self.queue._logs = Queue(size)
+        self.queue._success = Queue(size)
+        self.queue._failed = Queue(size)
 
     def listQueues(self, names=False, default=True):
         '''returns the list of queue names from the queuepool.
@@ -51,7 +58,7 @@ class QueuePool():
         if default:
             blacklist = []
         else:
-            blacklist = ['failed', 'success', 'logs', 'metrics']
+            blacklist = self.RESERVED_QUEUES
 
         for m in list(self.queue.__dict__.keys()):
             if m not in blacklist:
@@ -63,8 +70,23 @@ class QueuePool():
     def createQueue(self, name):
         '''Creates a Queue.'''
 
-        if name in ["metrics", "logs", "success", "failed"] or name.startswith("_"):
-            raise ReservedName
+        if name in self.RESERVED_QUEUES or name.startswith("_"):
+            raise ReservedName("%s is an invalid queue name." % (name))
+
+        setattr(self.queue, name, Queue(self.__size))
+
+    def createSystemQueue(self, name):
+        '''
+        Creates a queue starting with _ which is forbidden by users as special
+        system queues are prefixed with '_'.
+
+        This method should normally never be used directly because of user
+        input.  It's the Wishbone framework itself which should make system
+        related queues.
+
+        Args:
+            name (str): The name of the queue (should start with _)
+        '''
 
         setattr(self.queue, name, Queue(self.__size))
 

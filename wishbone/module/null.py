@@ -43,7 +43,7 @@ class Null(OutputModule):
            |  incoming events
     '''
 
-    def __init__(self, actor_config):
+    def __init__(self, actor_config, *args, selection=None, payload=None, **kwargs):
 
         Actor.__init__(self, actor_config)
         self.pool.createQueue("inbox")

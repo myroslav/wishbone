@@ -25,7 +25,7 @@
 from wishbone.queue import QueuePool
 from wishbone.logging import Logging
 from wishbone.event import Event as Wishbone_Event
-from wishbone.error import QueueConnected, ModuleInitFailure, InvalidModule, TTLExpired, InvalidData
+from wishbone.error import ModuleInitFailure, InvalidModule, TTLExpired, InvalidData
 from wishbone.moduletype import ModuleType
 from wishbone.actorconfig import ActorConfig
 
@@ -210,7 +210,7 @@ class Actor(object):
 
         self.logging = Logging(
             name=config.name,
-            q=self.pool.queue.logs,
+            q=self.pool.queue._logs,
             identification=self.config.identification
         )
 
@@ -221,51 +221,12 @@ class Actor(object):
         self.__run = Event()
         self.__run.clear()
 
-        self.__connections = {}
-
-        self.__children = {}
-        self.__parents = {}
-
         self.stopped = True
 
         self.__renderKwargs = self.__setupRenderKwargs()
         self.renderKwargs()
 
         self.__executeSanityChecks()
-
-    def connect(self, source, destination_module, destination_queue):
-        '''Connects the <source> queue to the <destination> queue.
-        In fact, the source queue overwrites the destination queue.
-
-        Args:
-            source (str): The name of the source queue
-            destination_module (``wishbone.module``): A Wishbone module instance
-            destination_queue (str): The name of the queue to connect ``source`` to.
-
-        Returns:
-            None
-        '''
-
-        if source in self.__children:
-            raise QueueConnected("Queue %s.%s is already connected to %s." % (self.name, source, self.__children[source]))
-        else:
-            self.__children[source] = "%s.%s" % (destination_module.name, destination_queue)
-
-        if destination_queue in destination_module.__parents:
-            raise QueueConnected("Queue %s.%s is already connected to %s" % (destination_module.name, destination_queue, destination_module.__parents[destination_queue]))
-        else:
-            destination_module.__parents[destination_queue] = "%s.%s" % (self.name, source)
-
-        if not self.pool.hasQueue(source):
-            self.logging.debug("Module instance '%s' has no queue '%s' so auto created." % (self.name, source))
-            self.pool.createQueue(source)
-
-        if not destination_module.pool.hasQueue(destination_queue):
-            self.logging.debug("Module instance '%s' has no queue '%s' so auto created." % (destination_module.name, destination_queue))
-
-        setattr(destination_module.pool.queue, destination_queue, self.pool.getQueue(source))
-        self.pool.getQueue(source).disableFallThrough()
-        self.logging.debug("Connected queue %s.%s to %s.%s" % (self.name, source, destination_module.name, destination_queue))
 
     def generateEvent(self, data={}):
         '''
@@ -284,21 +245,6 @@ class Actor(object):
 
         raise ModuleInitFailure("Function should get overwritten by either self.__generateNormalEvent or self.__reconstructEvent.")
 
-    def getChildren(self, queue=None):
-        '''Returns the queue name <queue> is connected to.
-
-        Args:
-            queue (str): Name of the the queue of which children are required.
-
-        Returns:
-            list: A list of queue names
-        '''
-
-        if queue is None:
-            return [self.__children[q] for q in list(self.__children.keys())]
-        else:
-            return self.__children[queue]
-
     def loop(self):
         '''The global lock for this module.
 
@@ -313,14 +259,14 @@ class Actor(object):
         Is executed when module exits.
         '''
 
-        pass
+        self.logging.debug("Module has no postHook() method set.")
 
     def preHook(self):
         '''
         Is executed when module starts.
         '''
 
-        self.logging.debug("Initialized.")
+        self.logging.debug("Module has no preHook() method set.")
 
     def registerConsumer(self, function, queue):
         '''
@@ -556,9 +502,9 @@ class Actor(object):
                 event.set(info, "errors.%s" % (self.name))
 
                 self.logging.error("%s" % (err))
-                self.submit(event, "failed")
+                self.submit(event, "_failed")
             else:
-                self.submit(event, "success")
+                self.submit(event, "_success")
             finally:
                 # Unset the current event uuid to the logger object
                 self.logging.setCurrentEventID(None)
@@ -626,7 +572,7 @@ class Actor(object):
                         "unit": "",
                         "tags": ()
                     })
-                    self.submit(event, "metrics")
+                    self.submit(event, "_metrics")
             sleep(self.config.frequency)
 
     def __setProtocolMethod(self):

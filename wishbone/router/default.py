@@ -24,6 +24,7 @@
 
 from wishbone.actorconfig import ActorConfig
 from wishbone.error import ModuleInitFailure, NoSuchModule, ProtocolInitFailure
+from wishbone.error import QueueConnected
 from wishbone.componentmanager import ComponentManager
 from gevent import event, sleep, spawn
 from gevent import pywsgi
@@ -55,6 +56,20 @@ class ModulePool():
         except AttributeError:
             raise NoSuchModule("Could not find module %s" % name)
 
+    def hasModule(self, name):
+        '''
+        Checks whether the module pool has this module.
+
+
+        Args:
+            name (str): The name of the module instance.
+
+        Returns
+            bool: True if module exists False if not.
+        '''
+
+        return name in self.module.__dict__.keys()
+
 
 class Default(object):
 
@@ -84,6 +99,9 @@ class Default(object):
         self.__block = event.Event()
         self.__block.clear()
 
+        self.__connections = {
+        }
+
     def block(self):
         '''Blocks until stop() is called and the shutdown process ended.'''
 
@@ -97,6 +115,9 @@ class Default(object):
 
             stdout.inbox
 
+        This type of router actually replaces the destination queue with the source
+        queue.
+
         Args:
             source (str): The source queue in <module.queue_name> syntax
             destination (str): The destination queue in <module.queue_name> syntax
@@ -105,13 +126,46 @@ class Default(object):
         (source_module, source_queue) = source.split('.')
         (destination_module, destination_queue) = destination.split('.')
 
-        source = self.module_pool.getModule(source_module)
-        destination = self.module_pool.getModule(destination_module)
+        if not self.module_pool.hasModule(source_module):
+            raise NoSuchModule("Module instance %s does not exist." % (source_module))
 
-        source.connect(source_queue, destination, destination_queue)
+        if not self.module_pool.hasModule(destination_module):
+            raise NoSuchModule("Module instance %s does not exist." % (destination_module))
+
+        result = self.__isConnectedTo(source)
+        if result is not None:
+            raise QueueConnected("Queue %s is already connected to %s." % (source, result))
+
+        result = self.__isConnectedTo(destination)
+        if result is not None:
+            raise QueueConnected("Queue %s is already connected to %s." % (destination, result))
+
+        self.__connections[source] = destination
+
+        source_module_instance = self.module_pool.getModule(source_module)
+        if not source_module_instance.pool.hasQueue(source_queue):
+            source_module_instance.pool.createSystemQueue(source_queue)
+            source_module_instance.logging.debug("Module instance '%s' has no queue '%s' so auto created." % (source_module, source_queue))
+
+        destination_module_instance = self.module_pool.getModule(destination_module)
+        if not destination_module_instance.pool.hasQueue(destination_queue):
+            destination_module_instance.pool.createSystemQueue(destination_queue)
+            destination_module_instance.logging.debug("Module instance '%s' has no queue '%s' so auto created." % (destination_module, destination_queue))
+
+        setattr(
+            destination_module_instance.pool.queue,
+            destination_queue,
+            source_module_instance.pool.getQueue(
+                source_queue
+            )
+        )
+
+        source_module_instance.pool.getQueue(source_queue).disableFallThrough()
+        source_module_instance.logging.debug("Connected queue %s to %s" % (source, destination))
 
     def getChildren(self, module):
-        '''Returns all the connected child modules
+        '''
+        Returns all the connected child modules
 
         Args:
             module (str): The name of the module.
@@ -119,21 +173,18 @@ class Default(object):
         Returns:
             list: A list of module names.
         '''
+
         children = []
 
-        def lookupChildren(module, children):
-            for module in self.module_pool.getModule(module).getChildren():
-                name = module.split(".")[0]
-                if name not in children:
-                    children.append(name)
-                    lookupChildren(name, children)
+        def travel(m):
+            for connection in self.__connections:
+                if connection.split('.')[0] == m:
+                    child = self.__connections[connection].split('.')[0]
+                    children.append(child)
+                    travel(child)
 
-        try:
-            lookupChildren(module, children)
-        except NoSuchModule:
-            return []
-        else:
-            return children
+        travel(module)
+        return children
 
     def registerModule(self, module, actor_config, arguments={}):
         '''Initializes the wishbone module module.
@@ -153,7 +204,7 @@ class Default(object):
         '''Stops all running modules.'''
 
         for module in self.module_pool.list():
-            if module.name not in self.getChildren("_logs") + ["_logs"] and not module.stopped:
+            if module.name not in list(self.getChildren("_logs")) + ["_logs"] and not module.stopped:
                 module.stop()
 
         while not self.__logsEmpty():
@@ -230,11 +281,31 @@ class Default(object):
 
         self.__setupConnections()
 
+    def __isConnectedTo(self, queue):
+        '''
+        Returns the module.queue ``queue`` is connected to.
+
+        Args:
+            queue (str): The name of the queue in ``module.queue`` format.
+
+        Returns
+            str/None: The name of the queue which is connected.
+        '''
+
+        inverse = {v: k for k, v in self.__connections.items()}
+
+        if queue in self.__connections:
+            return self.__connections[queue]
+        elif queue in inverse:
+            return inverse[queue]
+        else:
+            return None
+
     def __logsEmpty(self):
         '''Checks each module whether any logs have stayed behind.'''
 
         for module in self.module_pool.list():
-            if not module.pool.queue.logs.size() == 0:
+            if not module.pool.queue._logs.size() == 0:
                 return False
         else:
             return True
@@ -255,17 +326,17 @@ class GraphWebserver():
         self.js_data = VisJSData()
 
         for c in self.config["routingtable"]:
-                self.js_data.addModule(instance_name=c.source_module,
-                                       module_name=self.config["modules"][c.source_module]["module"],
-                                       description=self.module_pool.getModule(c.source_module).description)
+            self.js_data.addModule(instance_name=c.source_module,
+                                   module_name=self.config["modules"][c.source_module]["module"],
+                                   description=self.module_pool.getModule(c.source_module).description)
 
-                self.js_data.addModule(instance_name=c.destination_module,
-                                       module_name=self.config["modules"][c.destination_module]["module"],
-                                       description=self.module_pool.getModule(c.destination_module).description)
+            self.js_data.addModule(instance_name=c.destination_module,
+                                   module_name=self.config["modules"][c.destination_module]["module"],
+                                   description=self.module_pool.getModule(c.destination_module).description)
 
-                self.js_data.addQueue(c.source_module, c.source_queue)
-                self.js_data.addQueue(c.destination_module, c.destination_queue)
-                self.js_data.addEdge("%s.%s" % (c.source_module, c.source_queue), "%s.%s" % (c.destination_module, c.destination_queue))
+            self.js_data.addQueue(c.source_module, c.source_queue)
+            self.js_data.addQueue(c.destination_module, c.destination_queue)
+            self.js_data.addEdge("%s.%s" % (c.source_module, c.source_queue), "%s.%s" % (c.destination_module, c.destination_queue))
 
     def start(self):
 

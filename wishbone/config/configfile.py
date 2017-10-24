@@ -191,8 +191,8 @@ class ConfigFile(object):
                 'arguments': arguments,
                 'functions': functions,
                 'protocol': protocol})
-            self.addConnection(name, "logs", "_logs", "_%s" % (name))
-            self.addConnection(name, "metrics", "_metrics", "_%s" % (name))
+            self.addConnection(name, "_logs", "_logs", "_%s" % (name))
+            self.addConnection(name, "_metrics", "_metrics", "_%s" % (name))
 
         else:
             raise Exception("Module instance name '%s' is already taken." % (name))

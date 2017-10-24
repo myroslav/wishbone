@@ -134,9 +134,10 @@ class STDOUT(OutputModule):
         else:
             self.getString = self.__stringNoColor
 
+        self.setEncoder("wishbone.protocol.encode.dummy")
+
     def consume(self, event):
 
-        print(event.kwargs.payload)
         if event.kwargs.payload is None:
             if event.isBulk():
                 data = "\n".join([str(item) for item in extractBulkItemValues(event, self.kwargs.selection)])
@@ -148,7 +149,6 @@ class STDOUT(OutputModule):
             data = event.kwargs.payload
 
         data = self.encode(data)
-
         output = self.getString(
             getattr(Fore, event.kwargs.foreground_color),
             getattr(Back, event.kwargs.background_color),
