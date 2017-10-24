@@ -29,7 +29,7 @@ from wishbone.queue import Queue
 def test_listQueues():
     q = QueuePool(1)
     q.createQueue("hello")
-    assert sorted(list(q.listQueues(names=True))) == sorted(['hello', 'failed', 'success', 'logs', 'metrics'])
+    assert sorted(list(q.listQueues(names=True))) == sorted(['hello', '_failed', '_success', '_logs', '_metrics'])
 
 
 def test_createQueue():

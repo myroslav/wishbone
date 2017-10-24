@@ -33,10 +33,10 @@ def test_module_logs():
 
     # {"time": time(), "level": level, "pid": getpid(), "module": self.name, "message": message}
     test_event = Generator(actor_config)
-    test_event.pool.queue.logs.disableFallThrough()
+    test_event.pool.queue._logs.disableFallThrough()
     test_event.start()
 
-    log = getter(test_event.pool.queue.logs).get()
+    log = getter(test_event.pool.queue._logs).get()
     for key in ["time", "level", "pid", "module", "message"]:
         assert key in log
     test_event.stop()
