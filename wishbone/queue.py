@@ -28,10 +28,7 @@ from wishbone.error import ReservedName, QueueMissing, QueueFull, QueueEmpty
 from time import time
 from gevent.queue import Empty, Full
 from gevent import sleep
-
-
-class Container():
-    pass
+from types import SimpleNamespace
 
 
 class QueuePool():
@@ -45,7 +42,7 @@ class QueuePool():
 
     def __init__(self, size):
         self.__size = size
-        self.queue = Container()
+        self.queue = SimpleNamespace()
         self.queue._metrics = Queue(size)
         self.queue._logs = Queue(size)
         self.queue._success = Queue(size)
