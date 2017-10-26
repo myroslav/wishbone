@@ -44,7 +44,7 @@ class ActorConfig(object):
         disable_exception_handling (bool): If True, exception handling is disabled. Usefull for testing
     '''
 
-    def __init__(self, name, size=100, frequency=1, template_functions={}, description="A Wishbone actor.", module_functions={},
+    def __init__(self, name, size=100, frequency=1, template_functions={}, description=None, module_functions={},
                  protocol_name=None, protocol_function=None, protocol_event=False,
                  identification="wishbone",
                  disable_exception_handling=False):

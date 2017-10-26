@@ -28,6 +28,8 @@ from wishbone.event import Event as Wishbone_Event
 from wishbone.error import ModuleInitFailure, InvalidModule, TTLExpired, InvalidData
 from wishbone.moduletype import ModuleType
 from wishbone.actorconfig import ActorConfig
+from wishbone.function.template import TemplateFunction
+from wishbone.function.module import ModuleFunction
 
 from collections import namedtuple
 from gevent import spawn, kill
@@ -94,7 +96,6 @@ class RenderKwargs(object):
                 return result
 
     def render(self, queue_context=None, event_content={}):
-
         '''
         Renders the kwargs values using the provided payload.
 
@@ -204,7 +205,7 @@ class Actor(object):
 
         self.config = config
         self.name = config.name
-        self.description = config.description
+        self.description = self.__getDescription(config)
 
         self.pool = QueuePool(config.size)
 
@@ -225,8 +226,7 @@ class Actor(object):
 
         self.__renderKwargs = self.__setupRenderKwargs()
         self.renderKwargs()
-
-        self.__executeSanityChecks()
+        self.__setupValidation()
 
     def generateEvent(self, data={}):
         '''
@@ -509,20 +509,6 @@ class Actor(object):
                 # Unset the current event uuid to the logger object
                 self.logging.setCurrentEventID(None)
 
-    def __executeSanityChecks(self):
-        '''
-        Applies some basic sanity checks related to the module type.
-
-        Raises:
-            ModuleInitFailure: Raised when an unacceptable module misconfiguration occurs.
-        '''
-
-        if self.MODULE_TYPE == ModuleType.OUTPUT:
-            if "payload" not in self.kwargs.keys():
-                raise ModuleInitFailure("An 'output' module should always have a 'payload' parameter. This is a programming error.")
-            if "selection" not in self.kwargs.keys():
-                raise ModuleInitFailure("An 'output' module should always have a 'selection' parameter. This is a programming error.")
-
     def __generateNormalEvent(self, data={}):
         '''
         Gets mapped to self.generateEvent for `flow`, `process` and `output` type modules.
@@ -535,6 +521,23 @@ class Actor(object):
         '''
 
         return Wishbone_Event(data)
+
+    def __getDescription(self, config):
+        '''
+        Gets the module description.
+
+        Args:
+            config (``wishbone.actorconfig.ActorConfig``): An ActorConfig instance
+
+        Returns:
+            str: The description of this actor instance.
+        '''
+
+
+        if config.description is None:
+            return doc.strip().split('\n')[0].strip('*')
+        else:
+            return config.description
 
     def __reconstructEvent(self, data={}):
         '''
@@ -617,7 +620,11 @@ class Actor(object):
             else:
                 kwargs[key] = value
 
-        return RenderKwargs(kwargs, self.config.template_functions)
+        functions = {}
+        for n, f in self.config.template_functions.items():
+            functions[n] = f.get
+
+        return RenderKwargs(kwargs, functions)
 
     def __validateAppliedFunctions(self):
         '''
@@ -632,3 +639,38 @@ class Actor(object):
         for queue in self.config.module_functions.keys():
             if queue not in queues_w_registered_consumers:
                 raise ModuleInitFailure("Failed to initialize module '%s'. You have functions defined on queue '%s' which doesn't have a registered consumer." % (self.name, queue))
+
+    def __setupValidation(self):
+        '''
+        Does following validations:
+
+            - Validate if all template functions base ``TemplateFunction``
+            - Validate if all module functions base ``ModuleFunction``
+            - Validate if ``ModuleType.OUTPUT`` has ``payload`` and ``selection`` parameter.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            ModuleInitFailure: Raised when one of the components isn't correct.
+
+        '''
+
+        # Validate template functions
+        for n, f in self.config.template_functions.items():
+            if not isinstance(f, TemplateFunction):
+                raise ModuleInitFailure("Template function '%s' does not base TemplateFunction." % (n))
+
+        # Validate module functions
+        for n, f in self.config.module_functions.items():
+            if not isinstance(f, ModuleFunction):
+                raise ModuleInitFailure("Module function '%s' does not base ModuleFunction." % (n))
+
+        if self.MODULE_TYPE == ModuleType.OUTPUT:
+            if "payload" not in self.kwargs.keys():
+                raise ModuleInitFailure("An 'output' module should always have a 'payload' parameter. This is a programming error.")
+            if "selection" not in self.kwargs.keys():
+                raise ModuleInitFailure("An 'output' module should always have a 'selection' parameter. This is a programming error.")

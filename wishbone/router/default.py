@@ -30,17 +30,14 @@ from gevent import event, sleep, spawn
 from gevent import pywsgi
 from .graphcontent import GRAPHCONTENT
 from .graphcontent import VisJSData
-
-
-class Container():
-    pass
+from types import SimpleNamespace
 
 
 class ModulePool():
 
     def __init__(self):
 
-        self.module = Container()
+        self.module = SimpleNamespace()
 
     def list(self):
         '''Returns a generator returning all module instances.'''
@@ -187,16 +184,17 @@ class Default(object):
         return children
 
     def registerModule(self, module, actor_config, arguments={}):
-        '''Initializes the wishbone module module.
+        '''Initializes the wishbone module ``module``.
 
         Args:
-            module (Actor): A Wishbone module object (not initialized)
+            module (str): A Wishbone module component name.
             actor_config (ActorConfig): The module's actor configuration
             arguments (dict): The parameters to initialize the module.
         '''
 
         try:
-            setattr(self.module_pool.module, actor_config.name, module(actor_config, **arguments))
+            m = self.component_manager.getComponentByName(module)
+            setattr(self.module_pool.module, actor_config.name, m(actor_config, **arguments))
         except Exception as err:
             raise ModuleInitFailure("Problem loading module '%s'.  Reason: %s" % (actor_config.name, err))
 
@@ -230,20 +228,15 @@ class Default(object):
         '''Setup all modules and routes.'''
 
         protocols = {}
-
         for name, instance in list(self.config.protocols.items()):
-            try:
-                protocols[name] = self.component_manager.getComponentByName(instance.protocol)(**instance.arguments).handler
-            except Exception as err:
-                raise ProtocolInitFailure("Could not initialize Protocol module '%s'. Reason: %s" % (name, err))
+            protocols[name] = self.component_manager.getComponentByName(instance.protocol)(**instance.arguments).handler
 
         template_functions = {}
         for name, instance in list(self.config.template_functions.items()):
-            template_functions[name] = self.component_manager.getComponentByName(instance.function)(**instance.arguments).get
+            template_functions[name] = self.component_manager.getComponentByName(instance.function)(**instance.arguments)
 
         module_functions = {}
         for name, instance in list(self.config.module_functions.items()):
-            self.component_manager.getComponentByName(instance.function)
             module_functions[name] = self.component_manager.getComponentByName(instance.function)(**instance.arguments).do
 
         for name, instance in list(self.config.modules.items()):
@@ -254,11 +247,6 @@ class Default(object):
                 for queue_function in queue_functions:
                     if queue_function in module_functions:
                         module_functions[queue].append(module_functions[queue_function])
-
-            pmodule = self.component_manager.getComponentByName(instance.module)
-
-            if instance.description == "":
-                instance.description = pmodule.__doc__.split("\n")[0].replace('*', '')
 
             protocol_name = instance.get("protocol", None)
             protocol_function = protocols.get(protocol_name, None)
@@ -277,7 +265,11 @@ class Default(object):
                 protocol_event=protocol_event
             )
 
-            self.registerModule(pmodule, actor_config, instance.arguments)
+            self.registerModule(
+                instance.module,
+                actor_config,
+                instance.arguments
+            )
 
         self.__setupConnections()
 
