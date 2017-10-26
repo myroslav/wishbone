@@ -139,7 +139,8 @@ class ComponentManager():
 
     def getComponentByName(self, name):
         '''
-        Returns the module with name <name>
+        Returns the module with name ``name``.
+        ``name`` should be a valid entrypoint.
 
         Args:
             name (str): The complete module name.
