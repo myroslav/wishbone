@@ -535,7 +535,7 @@ class Actor(object):
 
 
         if config.description is None:
-            return doc.strip().split('\n')[0].strip('*')
+            return self.__doc__.strip().split('\n')[0].strip('*')
         else:
             return config.description
 
