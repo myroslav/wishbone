@@ -55,7 +55,7 @@ class BootStrap():
         start.add_argument('--instances', type=int, dest='instances', default=1, help='The number of parallel Wishbone instances to bootstrap.')
         start.add_argument('--pid', type=str, dest='pid', default='%s/wishbone.pid' % (os.getcwd()), help='The pidfile to use.')
         start.add_argument('--queue_size', type=int, dest='queue_size', default=100, help='The queue size to use.')
-        start.add_argument('--frequency', type=int, dest='frequency', default=1, help='The metric frequency.')
+        start.add_argument('--frequency', type=int, dest='frequency', default=10, help='The metric frequency.')
         start.add_argument('--identification', type=str, dest='identification', default="wishbone", help='An identifier string for generated logs.')
         start.add_argument('--nofork', action="store_true", default=False, help="When defined does not fork to background and INFO logs are written to STDOUT.")
 
@@ -63,7 +63,7 @@ class BootStrap():
         debug.add_argument('--config', type=str, dest='config', default='wishbone.cfg', help='The Wishbone bootstrap file to load.')
         debug.add_argument('--instances', type=int, dest='instances', default=1, help='The number of parallel Wishbone instances to bootstrap.')
         debug.add_argument('--queue_size', type=int, dest='queue_size', default=100, help='The queue size to use.')
-        debug.add_argument('--frequency', type=int, dest='frequency', default=1, help='The metric frequency.')
+        debug.add_argument('--frequency', type=int, dest='frequency', default=10, help='The metric frequency.')
         debug.add_argument('--identification', type=str, dest='identification', default="wishbone", help='An identifier string for generated logs.')
         debug.add_argument('--graph', action="store_true", help='When enabled starts a webserver on 8088 showing a graph of connected modules and queues.')
         debug.add_argument('--graph_include_sys', action="store_true", help='When enabled includes logs and metrics related queues modules and queues to graph layout.')
