@@ -34,7 +34,7 @@ class Choice(TemplateFunction):
     provided array.
 
     Args:
-        values (list): An array of elements to choose from
+        array (list): An array of elements to choose from
     '''
 
     def __init__(self, array):
