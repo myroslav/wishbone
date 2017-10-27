@@ -23,7 +23,7 @@
 #
 
 from wishbone.actorconfig import ActorConfig
-from wishbone.error import ModuleInitFailure, NoSuchModule, ProtocolInitFailure
+from wishbone.error import ModuleInitFailure, NoSuchModule
 from wishbone.error import QueueConnected
 from wishbone.componentmanager import ComponentManager
 from gevent import event, sleep, spawn
@@ -82,7 +82,7 @@ class Default(object):
         identification (wishbone): A string identifying this instance in logging.
     '''
 
-    def __init__(self, config=None, size=100, frequency=1, identification="wishbone", graph=False, graph_include_sys=False):
+    def __init__(self, config=None, size=100, frequency=10, identification="wishbone", graph=False, graph_include_sys=False):
 
         self.component_manager = ComponentManager()
         self.config = config
