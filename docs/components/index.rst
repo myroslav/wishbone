@@ -30,8 +30,10 @@ dedicated namespace.
 ``component type``, ``category`` and ``name`` further categorize the the components into logical groupings.
 
 Each component has an `entrypoint`_ so it can be referred to from a bootstrap
-file. The default Wishbone entrypoints are defined in its setup.py file. A
-component entrypoint is the same as the component name.
+file or referred to using
+:py:func:`wishbone.componentmanager.ComponentManager.getComponentByName`. The
+default Wishbone entrypoints are defined in its setup.py file. A component
+entrypoint is the same as the component name.
 
 An overview of available components can be viewed by using the ``list`` command:
 

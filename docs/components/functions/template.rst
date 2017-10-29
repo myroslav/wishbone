@@ -2,14 +2,16 @@
 Template Functions
 ==================
 
-Wishbone makes use of `Jinja2`_ for templates. Template functions are
+Template functions return data which can be used inside a template.
+
+Wishbone makes use of `Jinja2`_ for all its templates. Template functions are
 functions which can be executed inside templates in order to render data.
 
 Characteristics:
 
 * Template functions are functions which are added to the ``Jinja2`` `list of global functions`_.
 * Template functions are classes which base :py:class:`wishbone.function.template.TemplateFunction`.
-* Template functions **must** have a ``get()`` which provides the desired data.
+* Template functions **must** have a ``get()`` method which provides the desired data.
 
 Wishbone comes by default with following builtin template functions:
 
@@ -22,7 +24,7 @@ Wishbone comes by default with following builtin template functions:
 +-----------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------+
 | :py:class:`wishbone.function.template.epoch <wishbone.function.template.epoch.Epoch>`                           | Returns epoch with sub second accuracy as a float.           |
 +-----------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------+
-| :py:class:`wishbone.function.template.pid <wishbone.function.template.pid.Pid>`                                 | Returns the PID of the current process.                      |
+| :py:class:`wishbone.function.template.pid <wishbone.function.template.pid.PID>`                                 | Returns the PID of the current process.                      |
 +-----------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------+
 | :py:class:`wishbone.function.template.random_bool <wishbone.function.template.random_bool.RandomBool>`          | Randomly returns True or False                               |
 +-----------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------+
@@ -38,35 +40,11 @@ Wishbone comes by default with following builtin template functions:
 +-----------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------+
 
 
-.. autoclass:: wishbone.function.template.choice.Choice
-    :members:
+See following examples:
 
-.. autoclass:: wishbone.function.template.cycle.Cycle
-    :members:
+* :ref:`Using a template function. <using_a_template_function>`
+* :ref:`Creating a template function. <creating_a_template_function>`
 
-.. autoclass:: wishbone.function.template.epoch.Epoch
-    :members:
-
-.. autoclass:: wishbone.function.template.pid.PID
-    :members:
-
-.. autoclass:: wishbone.function.template.random_bool.RandomBool
-    :members:
-
-.. autoclass:: wishbone.function.template.random_integer.RandomInteger
-    :members:
-
-.. autoclass:: wishbone.function.template.random_uuid.RandomUUID
-    :members:
-
-.. autoclass:: wishbone.function.template.random_word.RandomWord
-    :members:
-
-.. autoclass:: wishbone.function.template.regex.Regex
-    :members:
-
-.. autoclass:: wishbone.function.template.strftime.STRFTime
-    :members:
 
 .. _Jinja2: http://jinja.pocoo.org/docs/2.9/
 .. _list of global functions: http://jinja.pocoo.org/docs/2.9/templates/#list-of-global-functions

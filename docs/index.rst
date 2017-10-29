@@ -17,13 +17,17 @@ The framework can be used to implement a wide area of solutions such as
 services`_ , `ChatOps services`_, bots and all kinds of event driven
 automation.
 
+.. image:: pics/separator_2.png
+    :align: center
+    :scale: 75%
+
 Why?
 ----
 
 The goal of the project is to provide an expressive and ops friendly framework
-to build pragmatic (micro)services taking as much boilerplate away such as:
+which removes a maximum of boilerplate such as:
 
-* Easily including your custom code
+* Easily include custom code
 * Process management
 * Error handling
 * Logging
@@ -31,19 +35,33 @@ to build pragmatic (micro)services taking as much boilerplate away such as:
 * Full server setup using YAML config files
 
 
-How?
-----
+.. image:: pics/separator_2.png
+    :align: center
+    :scale: 75%
 
-For an overview of examples visit the :ref:`examples <examples>` page.
+When?
+-----
+
+Wishbone is probably going to be interesting for you when you need to tackle the:
+
+    "`If this happens I want that to happen ...`" - kind of problems.
+
+|
+
+
+.. image:: pics/separator_2.png
+    :align: center
+    :scale: 75%
 
 
 .. toctree::
     :hidden:
+    :maxdepth: 3
 
     installation/index
     components/index
     server/index
-    examples/index
+    examples_recipes/index
     scenarios/index
     python/index
 
