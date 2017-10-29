@@ -276,6 +276,9 @@ class Actor(object):
         submitted to the "failed" queue,  If <function> succeeds to the
         success queue.
 
+        Registering ``function`` to consume ``queue`` will also apply all the
+        registered module functions against the events consumed from it.
+
         Args:
             function (``function``): The function which processes events
             queue (str): The name of the queue from which ``function`` will
@@ -431,7 +434,6 @@ class Actor(object):
                 sleep(0.1)
 
     def __applyFunctions(self, queue, event):
-
         '''
         Executes and applies all registered module functions against the event.
 
@@ -446,11 +448,11 @@ class Actor(object):
         if queue in self.config.module_functions:
             for f in self.config.module_functions[queue]:
                 try:
-                    event = f(event)
+                    event = f.do(event)
                 except Exception as err:
                     if self.config.disable_exception_handling:
                         raise
-                    self.logging.error("Function '%s' is skipped as it is causing an error. Reason: '%s'" % (f.__name__, err))
+                    self.logging.error("Function '%s' is skipped as it is causing an error. Reason: '%s'" % (f, err))
         return event
 
     def __consumer(self, function, queue):
@@ -665,9 +667,11 @@ class Actor(object):
                 raise ModuleInitFailure("Template function '%s' does not base TemplateFunction." % (n))
 
         # Validate module functions
-        for n, f in self.config.module_functions.items():
-            if not isinstance(f, ModuleFunction):
-                raise ModuleInitFailure("Module function '%s' does not base ModuleFunction." % (n))
+        for name, functions in self.config.module_functions.items():
+
+            for function in functions:
+                if not isinstance(function, ModuleFunction):
+                    raise ModuleInitFailure("Module function '%s' does not base ModuleFunction." % (name))
 
         if self.MODULE_TYPE == ModuleType.OUTPUT:
             if "payload" not in self.kwargs.keys():
