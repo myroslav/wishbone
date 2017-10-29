@@ -181,7 +181,7 @@ class ConfigFile(object):
 
         for queue, fs in functions.items():
             for function in fs:
-                if function not in self.config.functions.keys():
+                if function not in self.config.module_functions.keys():
                     raise Exception("No function defined with name '%s' for module instance '%s'." % (function, name))
 
         if name not in self.config["modules"]:
