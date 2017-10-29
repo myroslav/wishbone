@@ -237,16 +237,15 @@ class Default(object):
 
         module_functions = {}
         for name, instance in list(self.config.module_functions.items()):
-            module_functions[name] = self.component_manager.getComponentByName(instance.function)(**instance.arguments).do
+            module_functions[name] = self.component_manager.getComponentByName(instance.function)(**instance.arguments)
 
         for name, instance in list(self.config.modules.items()):
-            # Cherrypick the defined functions
-            module_functions = {}
+            mod_func = {}
             for queue, queue_functions in list(instance.functions.items()):
-                module_functions[queue] = []
+                mod_func[queue] = []
                 for queue_function in queue_functions:
                     if queue_function in module_functions:
-                        module_functions[queue].append(module_functions[queue_function])
+                        mod_func[queue].append(module_functions[queue_function])
 
             protocol_name = instance.get("protocol", None)
             protocol_function = protocols.get(protocol_name, None)
@@ -258,7 +257,7 @@ class Default(object):
                 frequency=self.frequency,
                 template_functions=template_functions,
                 description=instance.description,
-                module_functions=module_functions,
+                module_functions=mod_func,
                 identification=self.identification,
                 protocol_name=protocol_name,
                 protocol_function=protocol_function,
