@@ -4,6 +4,9 @@
     :target: https://github.com/smetj/wishbone
 **A pragmatists framework to build reactive event processing services.**
 
+.. warning::
+   This documentation is still WIP
+
 What?
 -----
 
