@@ -38,7 +38,7 @@ class Cycle(TemplateFunction):
 
     Args:
 
-        values(list): An array of elements to cycle through.
+        values(list): A list of elements to cycle through.
     '''
 
     def __init__(self, values):

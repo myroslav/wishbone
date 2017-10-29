@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  modify_set.py
+#  lowercase.py
 #
 #  Copyright 2017 Jelle Smet <development@smetj.net>
 #
@@ -22,24 +22,23 @@
 #
 #
 
-
 from wishbone.function.module import ModuleFunction
 
 
-class ModifySet(ModuleFunction):
+class Lowercase(ModuleFunction):
+    '''
+    Puts the desired field in lowercase.
 
-    def __init__(self, data, destination='data'):
-        '''
-        Sets a field to the desired value.
+    A Wishbone module function which converts the desired field to lowercase.
 
-        A Wishbone module function which sets data to the desired field.  Data can be a template.
+    Args:
+        source (str): The source field
+        destination (str): The destination field
+    '''
 
-        Args:
-            data (str): The value (or template) to apply.
-            destination (str): The destination field
-        '''
+    def __init__(self, source='data', destination='data'):
 
-        self.data = data
+        self.source = source
         self.destination = destination
 
     def do(self, event):
@@ -53,11 +52,5 @@ class ModifySet(ModuleFunction):
             wishbone.event.Event: The modified event.
         '''
 
-        if isinstance(self.data, str):
-            data = event.render(self.data)
-        else:
-            data = self.data
-
-        event.set(data, self.destination)
-
+        event.set(event.get(self.source).lower(), self.destination)
         return event

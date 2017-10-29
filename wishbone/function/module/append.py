@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  modify_uppercase.py
+#  append.py
 #
 #  Copyright 2017 Jelle Smet <development@smetj.net>
 #
@@ -25,20 +25,20 @@
 from wishbone.function.module import ModuleFunction
 
 
-class ModifyUppercase(ModuleFunction):
+class Append(ModuleFunction):
+    '''
+    Adds a value to an existing list.
 
-    def __init__(self, source='data', destination='data'):
-        '''
-        Puts the desired field in uppercase.
+    A Wishbone module function which add a value to an existing list.
 
-        A Wishbone module function which converts the desired field to uppercase.
+    Args:
+        data (str/int/float/list/dict): The data to add
+        destination (str): The field to add data to.
+    '''
 
-        Args:
-            source (str): The source field
-            destination (str): The destination field
-        '''
+    def __init__(self, data, destination='tags'):
 
-        self.source = source
+        self.data = data
         self.destination = destination
 
     def do(self, event):
@@ -52,5 +52,13 @@ class ModifyUppercase(ModuleFunction):
             wishbone.event.Event: The modified event.
         '''
 
-        event.set(event.get(self.source).upper(), self.destination)
+        if isinstance(self.data, (int, float, str)):
+            lst = event.get(self.destination)
+            if isinstance(lst, list):
+                lst.append(self.data)
+                event.set(lst, self.destination)
+            else:
+                raise Exception("'%s' is not an array" % (self.destination))
+        else:
+            raise Exception("'%s' is not a number or string." % (self.data))
         return event
