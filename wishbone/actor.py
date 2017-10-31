@@ -535,7 +535,6 @@ class Actor(object):
             str: The description of this actor instance.
         '''
 
-
         if config.description is None:
             return self.__doc__.strip().split('\n')[0].strip('*')
         else:

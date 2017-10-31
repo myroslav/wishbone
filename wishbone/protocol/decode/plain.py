@@ -31,7 +31,7 @@ class EndOfStream(Exception):
 
 class Plain(Decode):
 
-    '''**Decode text data into a Python data structure.**
+    '''**Decode plaintext using the defined charset.**
 
     Converts text bytestring into unicode using the defined charset.
 

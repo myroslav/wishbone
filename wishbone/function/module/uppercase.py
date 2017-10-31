@@ -38,7 +38,6 @@ class Uppercase(ModuleFunction):
 
     def __init__(self, source='data', destination='data'):
 
-
         self.source = source
         self.destination = destination
 
