@@ -22,8 +22,6 @@
 #
 #
 
-from wishbone.error import InvalidConfig
-
 
 class ActorConfig(object):
 
