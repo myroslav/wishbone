@@ -125,6 +125,7 @@ class STDOUT(OutputModule):
         )
         self.pool.createQueue("inbox")
         self.registerConsumer(self.consume, "inbox")
+        self.setEncoder("wishbone.protocol.encode.dummy")
 
     def preHook(self):
 
@@ -133,8 +134,6 @@ class STDOUT(OutputModule):
             self.getString = self.__stringColor
         else:
             self.getString = self.__stringNoColor
-
-        self.setEncoder("wishbone.protocol.encode.dummy")
 
     def consume(self, event):
 
@@ -148,7 +147,11 @@ class STDOUT(OutputModule):
         else:
             data = event.kwargs.payload
 
-        data = self.encode(data)
+        if self.config.io_event:
+            data = self.encode(event.dump())
+        else:
+            data = self.encode(data)
+
         output = self.getString(
             getattr(Fore, event.kwargs.foreground_color),
             getattr(Back, event.kwargs.background_color),

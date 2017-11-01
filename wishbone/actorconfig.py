@@ -22,6 +22,8 @@
 #
 #
 
+from wishbone.error import InvalidConfig
+
 
 class ActorConfig(object):
 
@@ -38,17 +40,16 @@ class ActorConfig(object):
         template_functions (dict): A dictionary of template functions.
         description (str): A short free form discription of the actor instance.
         module_functions (dict): A dict of queue names containing an array of module_functions
-        protocol_name (str): A protocol decode or encode component name.
-        protocol_function (func): The protocol function to apply
-        protocol_event (bool): If true the incoming data is expected to be a Wishbone event.
+        protocol (``wishbone.protocol.Encode``, ``wishbone.protocol.Encode``): A protocol decode or encode instance.
+        io_event (bool): When ``True`` Input and Output modules know to expect or emit serialzed wishbone events.
+        identification (str): A name assigned to the Wishbone instance, useful for the module to know such as logging.
         disable_exception_handling (bool): If True, exception handling is disabled. Usefull for testing
     '''
 
-    def __init__(self, name, size=100, frequency=1, template_functions={}, description=None, module_functions={},
-                 protocol_name=None, protocol_function=None, protocol_event=False,
+    def __init__(self, name, size=100, frequency=10, template_functions={}, description=None, module_functions={},
+                 protocol=None, io_event=False,
                  identification="wishbone",
                  disable_exception_handling=False):
-
         '''
         Args:
             name (str): The name identifying the actor instance.
@@ -57,10 +58,9 @@ class ActorConfig(object):
             template_functions (dict): A dictionary of template functions.
             description (str): A short free form discription of the actor instance.
             module_functions (dict): A dict of queue names containing an array of module_functions.
-            protocol_name (str): A protocol decode or encode component name.
-            protocol_function (func): The protocol function to apply
-            protocol_event (bool): If true the incoming data is expected to be a Wishbone event.
-            identification (str): A value to pass to the logging object identifying the wishbone instance.
+            protocol (``wishbone.protocol.Encode``, ``wishbone.protocol.Encode``): A protocol decode or encode instance.
+            io_event (bool): When ``True`` Input and Output modules know to expect or emit serialzed wishbone events.
+            identification (str): A name assigned to the Wishbone instance, useful for the module to know such as logging.
             disable_exception_handling (bool): If True, exception handling is disabled. Usefull for testing
         '''
         self.name = name
@@ -69,8 +69,7 @@ class ActorConfig(object):
         self.template_functions = template_functions
         self.description = description
         self.module_functions = module_functions
-        self.protocol_name = protocol_name
-        self.protocol_function = protocol_function
-        self.protocol_event = protocol_event
+        self.protocol = protocol
+        self.io_event = io_event
         self.identification = identification
         self.disable_exception_handling = disable_exception_handling

@@ -30,6 +30,7 @@ from wishbone.moduletype import ModuleType
 from wishbone.actorconfig import ActorConfig
 from wishbone.function.template import TemplateFunction
 from wishbone.function.module import ModuleFunction
+from wishbone.protocol import Encode, Decode
 
 from collections import namedtuple
 from gevent import spawn, kill
@@ -585,29 +586,31 @@ class Actor(object):
         `input` modules.
         '''
 
-        if not hasattr(self, "MODULE_TYPE"):
-            raise InvalidModule("Module instance '%s' seems to be of an incompatible old type." % (self.name))
-
         if self.MODULE_TYPE == ModuleType.INPUT:
-            if not hasattr(self, "decode") and self.config.protocol_name is None:
+            if not hasattr(self, "decode") and self.config.protocol is None:
                 self.logging.debug("This 'Input' module has no decoder method set. Setting dummy decoder.")
                 self.setDecoder("wishbone.protocol.decode.dummy")
-            if self.config.protocol_name is not None:
-                self.logging.debug("This 'Input' module has '%s' decoder configured." % (self.config.protocol_name))
-                self.decode = self.config.protocol_function
+            if self.config.protocol is not None:
+                self.logging.debug("This 'Input' module has '%s' decoder configured." % (self.config.protocol))
+                self.decode = self.config.protocol.handler
 
-            if self.config.protocol_event is True:
+            if self.config.io_event is True:
                 self.generateEvent = self.__reconstructEvent
             else:
                 self.generateEvent = self.__generateNormalEvent
 
         if self.MODULE_TYPE == ModuleType.OUTPUT:
-            if not hasattr(self, "encode") and self.config.protocol_name is None:
-                self.logging.debug("This 'Output' module has no encoder method set. Setting dummy encoder.")
+            if not hasattr(self, "encode") and self.config.protocol is None:
+                self.logging.debug("This 'Output' module has no encoder method set. Setting dummy decoder.")
                 self.setEncoder("wishbone.protocol.encode.dummy")
-            if self.config.protocol_name is not None:
-                self.logging.debug("This 'Output' module has '%s' encoder configured." % (self.config.protocol_name))
-                self.encode = self.config.protocol_function
+            if self.config.protocol is not None:
+                self.logging.debug("This 'Output' module has '%s' encoder configured." % (self.config.protocol))
+                self.encode = self.config.protocol.handler
+
+            if self.config.io_event is True:
+                self.generateEvent = self.__reconstructEvent
+            else:
+                self.generateEvent = self.__generateNormalEvent
 
     def __setupRenderKwargs(self):
         '''
@@ -648,6 +651,9 @@ class Actor(object):
             - Validate if all template functions base ``TemplateFunction``
             - Validate if all module functions base ``ModuleFunction``
             - Validate if ``ModuleType.OUTPUT`` has ``payload`` and ``selection`` parameter.
+            - Validate if ``ModuleType.INPUT`` whether protocol bases ``Protocol.Decode``
+            - Validate if ``ModuleType.OUTPUT`` whether protocol bases ``Protocol.Encode``
+            - Validate if the module has attribute "MODULE_TYPE" indicating it's not an pre 3.0 module.
 
         Args:
             None
@@ -677,3 +683,14 @@ class Actor(object):
                 raise ModuleInitFailure("An 'output' module should always have a 'payload' parameter. This is a programming error.")
             if "selection" not in self.kwargs.keys():
                 raise ModuleInitFailure("An 'output' module should always have a 'selection' parameter. This is a programming error.")
+
+        if self.MODULE_TYPE == ModuleType.INPUT:
+            if self.config.protocol is not None and not isinstance(self.config.protocol, Decode):
+                raise ModuleInitFailure("An 'input' module should have a decode protocol set. Found %s" % (type(self.config.protocol)))
+
+        if self.MODULE_TYPE == ModuleType.OUTPUT:
+            if self.config.protocol is not None and not isinstance(self.config.protocol, Encode):
+                raise ModuleInitFailure("An 'output' module should have a encode protocol set. Found %s" % (type(self.config.protocol)))
+
+        if not hasattr(self, "MODULE_TYPE"):
+            raise InvalidModule("Module instance '%s' seems to be of an incompatible old type." % (self.name))

@@ -38,9 +38,6 @@ SCHEMA = {
                         "protocol": {
                             "type": "string"
                         },
-                        "event": {
-                            "type": "boolean"
-                        },
                         "arguments": {
                             "type": "object"
                         }
@@ -106,6 +103,9 @@ SCHEMA = {
                         },
                         "functions": {
                             "type": "object"
+                        },
+                        "event": {
+                            "type": "boolean"
                         }
                     },
                     "required": ["module"],
@@ -171,31 +171,12 @@ class ConfigFile(object):
         self.__addMetricFunnel()
         self.load(filename)
 
-    def addModule(self, name, module, arguments={}, description="", functions={}, protocol=None):
+    def addModule(self, name, module, arguments={}, description="", functions={}, protocol=None, event=False):
 
         if name.startswith('_'):
             raise Exception("Module instance names cannot start with _.")
 
-        if protocol is not None and protocol not in self.config.protocols:
-            raise Exception("No protocol module defined with name '%s' for module instance '%s'" % (protocol, name))
-
-        for queue, fs in functions.items():
-            for function in fs:
-                if function not in self.config.module_functions.keys():
-                    raise Exception("No function defined with name '%s' for module instance '%s'." % (function, name))
-
-        if name not in self.config["modules"]:
-            self.config["modules"][name] = EasyDict({
-                'description': description,
-                'module': module,
-                'arguments': arguments,
-                'functions': functions,
-                'protocol': protocol})
-            self.addConnection(name, "_logs", "_logs", "_%s" % (name))
-            self.addConnection(name, "_metrics", "_metrics", "_%s" % (name))
-
-        else:
-            raise Exception("Module instance name '%s' is already taken." % (name))
+        self.__addModule(name, module, arguments, description, functions, protocol, event)
 
     def addTemplateFunction(self, name, function, arguments={}):
 
@@ -267,6 +248,30 @@ class ConfigFile(object):
 
         getattr(self, "_setupLogging%s" % (self.logstyle.upper()))()
 
+    def __addModule(self, name, module, arguments={}, description="", functions={}, protocol=None, event=False):
+
+        if protocol is not None and protocol not in self.config.protocols:
+            raise Exception("No protocol module defined with name '%s' for module instance '%s'" % (protocol, name))
+
+        for queue, fs in functions.items():
+            for function in fs:
+                if function not in self.config.module_functions.keys():
+                    raise Exception("No function defined with name '%s' for module instance '%s'." % (function, name))
+
+        if name not in self.config["modules"]:
+            self.config["modules"][name] = EasyDict({
+                'description': description,
+                'module': module,
+                'arguments': arguments,
+                'functions': functions,
+                'protocol': protocol,
+                'event': event})
+            self.addConnection(name, "_logs", "_logs", "_%s" % (name))
+            self.addConnection(name, "_metrics", "_metrics", "_%s" % (name))
+
+        else:
+            raise Exception("Module instance name '%s' is already taken." % (name))
+
     def __queueConnected(self, module, queue):
 
         for c in self.config["routingtable"]:
@@ -308,25 +313,29 @@ class ConfigFile(object):
 
     def __addLogFunnel(self):
 
-        self.config["modules"]["_logs"] = EasyDict({
-            'description': "Centralizes the logs of all modules.",
-            'module': "wishbone.module.flow.funnel",
-            "arguments": {
+        self.__addModule(
+            name="_logs",
+            module="wishbone.module.flow.funnel",
+            arguments={
             },
-            "functions": {
-            }
-        })
+            description="Centralizes the logs of all modules.",
+            functions={
+            },
+            protocol=None
+        )
 
     def __addMetricFunnel(self):
 
-        self.config["modules"]["_metrics"] = EasyDict({
-            'description': "Centralizes the metrics of all modules.",
-            'module': "wishbone.module.flow.funnel",
-            "arguments": {
+        self.__addModule(
+            name="_metrics",
+            module="wishbone.module.flow.funnel",
+            arguments={
             },
-            "functions": {
-            }
-        })
+            description="Centralizes the metrics of all modules.",
+            functions={
+            },
+            protocol=None
+        )
 
     def _setupLoggingSTDOUT(self):
 
@@ -335,42 +344,49 @@ class ConfigFile(object):
 
         if not self.__queueConnected("_logs", "outbox"):
 
-            self.config["modules"]["_logs_format"] = EasyDict({
-                "description": "Create a human readable log format.",
-                "module": "wishbone.module.process.template",
-                "arguments": {
+            self.__addModule(
+                name="_logs_format",
+                module="wishbone.module.process.template",
+                arguments={
                     "templates": {
                         "human_log": LOG_TEMPLATE
                     }
                 },
-                "functions": {
-                }
-            })
+                description="Create a human readable log format.",
+                functions={
+                },
+                protocol=None
+            )
             self.addConnection("_logs", "outbox", "_logs_format", "inbox")
 
-            self.config["modules"]["_logs_stdout"] = EasyDict({
-                'description': "Prints all incoming logs to STDOUT.",
-                'module': "wishbone.module.output.stdout",
-                "arguments": {
+            self.__addModule(
+                name="_logs_stdout",
+                module="wishbone.module.output.stdout",
+                arguments={
                     "colorize": self.colorize_stdout,
                     "selection": "human_log"
                 },
-                "functions": {
-                }
-            })
+                description="Prints all incoming logs to STDOUT.",
+                functions={
+                },
+                protocol=None
+            )
             self.addConnection("_logs_format", "outbox", "_logs_stdout", "inbox")
 
     def _setupLoggingSYSLOG(self):
 
         if not self.__queueConnected("_logs", "outbox"):
-            self.config["modules"]["_logs_syslog"] = EasyDict({
-                'description': "Writes all incoming messags to syslog.",
-                'module': "wishbone.module.output.syslog",
-                "arguments": {
+
+            self.__addModule(
+                name="_logs_syslog",
+                module="wishbone.module.output.syslog",
+                arguments={
                     "ident": self.identification,
                     "payload": "module({{data.module}}): {{data.message}}"
                 },
-                "functions": {
-                }
-            })
+                description="Writes all incoming messages to syslog.",
+                functions={
+                },
+                protocol=None
+            )
             self.addConnection("_logs", "outbox", "_logs_syslog", "inbox")

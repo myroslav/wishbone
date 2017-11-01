@@ -229,7 +229,7 @@ class Default(object):
 
         protocols = {}
         for name, instance in list(self.config.protocols.items()):
-            protocols[name] = self.component_manager.getComponentByName(instance.protocol)(**instance.arguments).handler
+            protocols[name] = self.component_manager.getComponentByName(instance.protocol)(**instance.arguments)
 
         template_functions = {}
         for name, instance in list(self.config.template_functions.items()):
@@ -247,9 +247,12 @@ class Default(object):
                     if queue_function in module_functions:
                         mod_func[queue].append(module_functions[queue_function])
 
-            protocol_name = instance.get("protocol", None)
-            protocol_function = protocols.get(protocol_name, None)
-            protocol_event = self.config.protocols.get(protocol_name, {}).get("event", False)
+            if instance.protocol is None:
+                protocol = None
+            elif instance.protocol not in protocols:
+                raise ModuleInitFailure("Protocol %s referenced but not available." % (instance.protocol))
+            else:
+                protocol = protocols[instance.protocol]
 
             actor_config = ActorConfig(
                 name=name,
@@ -259,9 +262,8 @@ class Default(object):
                 description=instance.description,
                 module_functions=mod_func,
                 identification=self.identification,
-                protocol_name=protocol_name,
-                protocol_function=protocol_function,
-                protocol_event=protocol_event
+                protocol=protocol,
+                io_event=instance.event
             )
 
             self.registerModule(
