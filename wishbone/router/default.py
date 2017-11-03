@@ -177,8 +177,11 @@ class Default(object):
             for connection in self.__connections:
                 if connection.split('.')[0] == m:
                     child = self.__connections[connection].split('.')[0]
-                    children.append(child)
-                    travel(child)
+                    if child in children:
+                        continue
+                    else:
+                        children.append(child)
+                        travel(child)
 
         travel(module)
         return children
@@ -350,7 +353,7 @@ class GraphWebserver():
     def application(self, env, start_response):
         if env['PATH_INFO'] == '/':
             start_response('200 OK', [('Content-Type', 'text/html')])
-            return[GRAPHCONTENT % (self.js_data.dumpString()[0], self.js_data.dumpString()[1])]
+            return[str.encode(GRAPHCONTENT % (self.js_data.dumpString()[0], self.js_data.dumpString()[1]))]
         else:
             start_response('404 Not Found', [('Content-Type', 'text/html')])
             return [b'<h1>Not Found</h1>']
