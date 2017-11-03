@@ -63,11 +63,9 @@ Wishbone is probably going to be interesting for you when you need to tackle the
 
     installation/index
     components/index
-    server/index
-    examples_recipes/index
-    scenarios/index
     python/index
-
+    cli_bootstrapping/index
+    examples_recipes/index
 
 .. _mashup enablers: https://en.wikipedia.org/wiki/Mashup_(web_application_hybrid)#Mashup_enabler
 .. _ETL servers: https://en.wikipedia.org/wiki/Extract,_transform,_load

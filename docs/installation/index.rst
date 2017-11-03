@@ -21,7 +21,7 @@ Installation
 .. toctree::
     python
     source
-    docker
+    docker/index
 
 
 .. _semantic versioning: http://semver.org/
