@@ -1,6 +1,7 @@
 ================
 Module Functions
 ================
+.. _module_functions:
 
 Module functions are functions in a module which are automatically applied to
 events when they are consumed from a queue.

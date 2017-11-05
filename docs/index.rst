@@ -63,8 +63,8 @@ Wishbone is probably going to be interesting for you when you need to tackle the
 
     installation/index
     components/index
+    bootstrap_cli/index
     python/index
-    cli_bootstrapping/index
     examples_recipes/index
 
 .. _mashup enablers: https://en.wikipedia.org/wiki/Mashup_(web_application_hybrid)#Mashup_enabler
