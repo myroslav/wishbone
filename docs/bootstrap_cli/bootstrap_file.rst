@@ -33,102 +33,103 @@ It consists out of 5 sections:
 
 2. **`module_functions`** section:
 
-   .. _bootstrap_module_functions:
+  .. _bootstrap_module_functions:
 
-   This section initializes the :ref:`module functions <module_functions>`. It
-   is not necessary to use all the initialized functions.  This section is
-   optional.
+  This section initializes the :ref:`module functions <module_functions>`. It
+  is not necessary to use all the initialized functions.This section is
+  optional.
 
-   A sample extract:
+  A sample extract:
 
-   .. code-block:: yaml
+  .. code-block:: yaml
 
-        module_functions:
-          tagit:
-              function: wishbone.function.module.append
-              arguments:
-                  data: you_are_tagged
-                  destination: tags
+       module_functions:
+         tagit:
+             function: wishbone.function.module.append
+             arguments:
+                 data: you_are_tagged
+                 destination: tags
 
-    * The ``function`` value is the *entrypoint* name.
-    * ``arguments is optional``
+  * The ``function`` value is the *entrypoint* name.
+  * ``arguments is optional``
 
 
 3. **`template_functions`** section:
 
-   .. _bootstrap_template_functions:
+  .. _bootstrap_template_functions:
 
-   This section initializes the :ref:`template functions
-   <template_functions>`. It is not necessary to use all the initialized
-   functions.  This section is optional.
-
-
-   A sample extract:
-
-   .. code-block:: yaml
-
-        template_functions:
-          gimmeNumber:
-            function: wishbone.function.template.choice
-            arguments:
-              array:
-                - one
-                - two
-                - three
+  This section initializes the :ref:`template functions <template_functions>`.
+  It is not necessary to use all the initialized functions.This section is
+  optional.
 
 
-    * The ``function`` value is the *entrypoint* name.
-    * ``arguments is optional``
+  A sample extract:
+
+  .. code-block:: yaml
+
+       template_functions:
+         gimmeNumber:
+           function: wishbone.function.template.choice
+           arguments:
+             array:
+               - one
+               - two
+               - three
+
+
+  * The ``function`` value is the *entrypoint* name.
+  * ``arguments is optional``
 
 
 4. **`modules`** section:
 
    .. _bootstrap_modules:
 
-   This section initializes :ref:`modules <modules>`.  It is not necessary to
-   connect a module to another module in the `routingtable` section. Otherwise
-   this section is mandatory.
+  This section initializes :ref:`modules <modules>`.It is not necessary to
+  connect a module to another module in the `routingtable` section. Otherwise
+  this section is mandatory.
 
-   A sample extract:
+  A sample extract:
 
-   .. code-block:: yaml
+  .. code-block:: yaml
 
-        modules:
-          input:
-            module: wishbone.module.input.generator
-            arguments:
-              interval: 1
-              payload: hello
+       modules:
+         input:
+           module: wishbone.module.input.generator
+           arguments:
+             interval: 1
+             payload: hello
 
-          output:
-            module: wishbone.module.output.stdout
-            arguments:
-              prefix: '{{ data }} is the prefix '
-              selection: '.'
+         output:
+           module: wishbone.module.output.stdout
+           arguments:
+             prefix: '{{ data }} is the prefix '
+             selection: '.'
 
 
-   * The ``module`` value is the entrypoint name.
-   * ``arguments`` is optional.
+  * The ``module`` value is the entrypoint name.
+  * ``arguments`` is optional.
+
 
 
 5. **`routingtable`** section:
 
    .. _bootstrap_routingtable:
 
-   The routing table section defines all the connections between the module
-   queues therefor defining the event flow and order the events are passing
-   through modules.
+  The routing table section defines all the connections between the module
+  queues therefor defining the event flow and order the events are passing
+  through modules.
 
-   The entries should have following format:
+  The entries should have following format:
 
-   ::
+  ::
 
-        source_module_instance_name.queue_name -> destination_module_instance_name.queue_name
+       source_module_instance_name.queue_name -> destination_module_instance_name.queue_name
 
 
-   A sample extract:
+  A sample extract:
 
-    .. code-block:: yaml
+  .. code-block:: yaml
 
         routingtable:
           - input.outbox            -> jsondecode.inbox
@@ -140,11 +141,14 @@ It consists out of 5 sections:
           - match.msteams           -> msteams.inbox
 
 
-    * The routing table is obligatory
-    * The routing table contains '->' indicating the relation between the
-      source queue and the destination queue.
+  * The routing table is obligatory
+  * The routing table contains '->' indicating the relation between the
+    source queue and the destination queue.
+
+
+A complete example can be seen in the :ref:`examples <examples>` section.
+
 
 .. _this schema: https://github.com/smetj/wishbone/blob/develop_3.0.0/wishbone/config/schema.py
 
 
-A complete example can be seen in the :ref:`examples <examples>` section.
