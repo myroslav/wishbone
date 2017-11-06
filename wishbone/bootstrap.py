@@ -40,8 +40,8 @@ from pkg_resources import get_distribution
 
 
 class BootStrap():
-
-    '''Parses command line arguments and bootstraps the Wishbone instance.
+    '''
+    Parses command line arguments and bootstraps the Wishbone instance.
     '''
 
     def __init__(self, description="Wishbone bootstrap server. Build composable event pipeline servers with minimal effort.", include_groups=[]):
@@ -58,7 +58,7 @@ class BootStrap():
         start.add_argument('--identification', type=str, dest='identification', default="wishbone", help='An identifier string for generated logs.')
         start.add_argument('--instances', type=int, dest='instances', default=1, help='The number of parallel Wishbone instances to bootstrap.')
         start.add_argument('--log_level', type=int, dest='log_level', default=6, help='The maximum loglevel.')
-        start.add_argument('--nofork', action="store_true", default=False, help="When defined does not fork to background and INFO logs are written to STDOUT.")
+        start.add_argument('--fork', action="store_true", default=False, help="When defined forks Wishbone to background and INFO logs are written to STDOUT.")
         start.add_argument('--nocolor', action="store_true", help='When defined does not print colored output to stdout.')
         start.add_argument('--pid', type=str, dest='pid', default='%s/wishbone.pid' % (os.getcwd()), help='The pidfile to use.')
         start.add_argument('--profile', action="store_true", help='When enabled profiles the process and dumps a Chrome developer tools profile file in the current directory.')
@@ -66,9 +66,6 @@ class BootStrap():
 
         stop = subparsers.add_parser('stop', description="Tries to gracefully stop the Wishbone instance.")
         stop.add_argument('--pid', type=str, dest='pid', default='wishbone.pid', help='The pidfile to use.')
-
-        kill = subparsers.add_parser('kill', description="Kills the Wishbone processes immediately.")
-        kill.add_argument('--pid', type=str, dest='pid', default='wishbone.pid', help='The pidfile to use.')
 
         subparsers.add_parser('list', description="Lists the available modules.")
 
@@ -84,8 +81,8 @@ class BootStrap():
 
 
 class Dispatch():
-
-    '''Handles the Wishbone commands, processes and daemons.
+    '''
+    Handles the Wishbone commands, processes and daemons.
     '''
 
     def __init__(self, **kwargs):
@@ -102,7 +99,7 @@ class Dispatch():
         self.docs = kwargs.get("docs", None)
         self.code = kwargs.get("code", None)
         self.nocolor = kwargs.get("nocolor", False)
-        self.nofork = kwargs.get("nofork", None)
+        self.fork = kwargs.get("fork", None)
         self.log_level = kwargs.get("log_level", None)
         self.routers = []
 
@@ -273,10 +270,11 @@ class Dispatch():
 
         colorize = not self.nocolor
 
-        if self.nofork:
-            logstyle = "STDOUT"
-        else:
+        if self.fork:
             logstyle = "SYSLOG"
+        else:
+            logstyle = "STDOUT"
+
 
         router_config = ConfigFile(
             filename=self.config,
@@ -290,7 +288,7 @@ class Dispatch():
         self.initializeManyRouters(
             config=config,
             number=self.instances,
-            background=not self.nofork
+            background=self.fork
         )
 
     def stop(self):
