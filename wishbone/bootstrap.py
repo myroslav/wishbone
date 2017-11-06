@@ -52,23 +52,17 @@ class BootStrap():
 
         start = subparsers.add_parser('start', description="Starts a Wishbone instance and detaches to the background.  Logs are written to syslog.")
         start.add_argument('--config', type=str, dest='config', default='wishbone.cfg', help='The Wishbone bootstrap file to load.')
-        start.add_argument('--instances', type=int, dest='instances', default=1, help='The number of parallel Wishbone instances to bootstrap.')
-        start.add_argument('--pid', type=str, dest='pid', default='%s/wishbone.pid' % (os.getcwd()), help='The pidfile to use.')
-        start.add_argument('--queue_size', type=int, dest='queue_size', default=100, help='The queue size to use.')
         start.add_argument('--frequency', type=int, dest='frequency', default=10, help='The metric frequency.')
+        start.add_argument('--graph', action="store_true", help='When enabled starts a webserver on 8088 showing a graph of connected modules and queues.')
+        start.add_argument('--graph_include_sys', action="store_true", help='When enabled includes logs and metrics related queues modules and queues to graph layout.')
         start.add_argument('--identification', type=str, dest='identification', default="wishbone", help='An identifier string for generated logs.')
+        start.add_argument('--instances', type=int, dest='instances', default=1, help='The number of parallel Wishbone instances to bootstrap.')
+        start.add_argument('--log_level', type=int, dest='log_level', default=6, help='The maximum loglevel.')
         start.add_argument('--nofork', action="store_true", default=False, help="When defined does not fork to background and INFO logs are written to STDOUT.")
-
-        debug = subparsers.add_parser('debug', description="Starts a Wishbone instance in foreground and writes debug logs to STDOUT.")
-        debug.add_argument('--config', type=str, dest='config', default='wishbone.cfg', help='The Wishbone bootstrap file to load.')
-        debug.add_argument('--instances', type=int, dest='instances', default=1, help='The number of parallel Wishbone instances to bootstrap.')
-        debug.add_argument('--queue_size', type=int, dest='queue_size', default=100, help='The queue size to use.')
-        debug.add_argument('--frequency', type=int, dest='frequency', default=10, help='The metric frequency.')
-        debug.add_argument('--identification', type=str, dest='identification', default="wishbone", help='An identifier string for generated logs.')
-        debug.add_argument('--graph', action="store_true", help='When enabled starts a webserver on 8088 showing a graph of connected modules and queues.')
-        debug.add_argument('--graph_include_sys', action="store_true", help='When enabled includes logs and metrics related queues modules and queues to graph layout.')
-        debug.add_argument('--nocolor', action="store_true", help='When defined does not print colored output to stdout.')
-        debug.add_argument('--profile', action="store_true", help='When enabled profiles the process and dumps a Chrome developer tools profile file in the current directory.')
+        start.add_argument('--nocolor', action="store_true", help='When defined does not print colored output to stdout.')
+        start.add_argument('--pid', type=str, dest='pid', default='%s/wishbone.pid' % (os.getcwd()), help='The pidfile to use.')
+        start.add_argument('--profile', action="store_true", help='When enabled profiles the process and dumps a Chrome developer tools profile file in the current directory.')
+        start.add_argument('--queue_size', type=int, dest='queue_size', default=100, help='The queue size to use.')
 
         stop = subparsers.add_parser('stop', description="Tries to gracefully stop the Wishbone instance.")
         stop.add_argument('--pid', type=str, dest='pid', default='wishbone.pid', help='The pidfile to use.')
@@ -109,6 +103,7 @@ class Dispatch():
         self.code = kwargs.get("code", None)
         self.nocolor = kwargs.get("nocolor", False)
         self.nofork = kwargs.get("nofork", None)
+        self.log_level = kwargs.get("log_level", None)
         self.routers = []
 
     def bootstrapBlock(self):
@@ -121,28 +116,6 @@ class Dispatch():
                 break
             except KeyboardInterrupt:
                 pass
-
-    def debug(self):
-        '''Maps to the CLI command and starts Wishbone in foreground.
-        '''
-
-        colorize = not self.nocolor
-
-        router_config = ConfigFile(
-            filename=self.config,
-            logstyle='STDOUT',
-            loglevel=7,
-            colorize_stdout=colorize,
-            identification=self.identification
-        )
-
-        config = router_config.dump()
-
-        self.initializeManyRouters(
-            config=config,
-            number=self.instances,
-            background=False
-        )
 
     def generateHeader(self):
         '''Generates the Wishbone ascii header.
@@ -298,6 +271,8 @@ class Dispatch():
         '''Maps to the CLI command and starts one or more Wishbone processes in background.
         '''
 
+        colorize = not self.nocolor
+
         if self.nofork:
             logstyle = "STDOUT"
         else:
@@ -306,7 +281,8 @@ class Dispatch():
         router_config = ConfigFile(
             filename=self.config,
             logstyle=logstyle,
-            loglevel=6,
+            loglevel=self.log_level,
+            colorize_stdout=colorize,
             identification=self.identification
         )
         config = router_config.dump()

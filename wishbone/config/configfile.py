@@ -27,7 +27,14 @@ from easydict import EasyDict
 from jsonschema import validate
 from .schema import SCHEMA
 
-LOG_TEMPLATE = '''
+LOG_FILTER_TEMPLATE = '''
+    {{%- if data.level <= {loglevel} -%}}
+        pass
+    {{%- else -%}}
+        nomatch
+    {{%- endif -%}}'''
+
+LOG_COLOR_TEMPLATE = '''
     {%- if data.level == 0 -%}
         \x1B[0;35m
     {%- elif data.level == 1 -%}
@@ -74,6 +81,7 @@ class ConfigFile(object):
             "routingtable": []
         })
         self.__addLogFunnel()
+        self.__addLogFilter()
         self.__addMetricFunnel()
         self.load(filename)
 
@@ -217,6 +225,24 @@ class ConfigFile(object):
             assert "." in left.lstrip().rstrip(), "routingtable rule \"%s\" does not have the right format. Missing a dot." % (route)
             assert "." in right.lstrip().rstrip(), "routingtable rule \"%s\" does not have the right format. Missing a dot." % (route)
 
+    def __addLogFilter(self):
+
+        self.__addModule(
+            name="_logs_filter",
+            module="wishbone.module.flow.queueselect",
+            arguments={
+                "templates": [
+                    {"name": "log_filter",
+                     "queue": LOG_FILTER_TEMPLATE.format(loglevel=self.loglevel)
+                     }
+                ]
+            },
+            description="Centralizes the logs of all modules.",
+            functions={
+            },
+            protocol=None
+        )
+
     def __addLogFunnel(self):
 
         self.__addModule(
@@ -255,7 +281,7 @@ class ConfigFile(object):
                 module="wishbone.module.process.template",
                 arguments={
                     "templates": {
-                        "human_log": LOG_TEMPLATE
+                        "human_log": LOG_COLOR_TEMPLATE
                     }
                 },
                 description="Create a human readable log format.",
@@ -263,7 +289,9 @@ class ConfigFile(object):
                 },
                 protocol=None
             )
-            self.addConnection("_logs", "outbox", "_logs_format", "inbox")
+
+            self.addConnection("_logs", "outbox", "_logs_filter", "inbox")
+            self.addConnection("_logs_filter", "pass", "_logs_format", "inbox")
 
             self.__addModule(
                 name="_logs_stdout",
@@ -295,4 +323,6 @@ class ConfigFile(object):
                 },
                 protocol=None
             )
-            self.addConnection("_logs", "outbox", "_logs_syslog", "inbox")
+
+            self.addConnection("_logs", "outbox", "_logs_filter", "inbox")
+            self.addConnection("_logs_filter", "pass", "_logs_syslog", "inbox")
