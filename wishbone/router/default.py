@@ -319,20 +319,28 @@ class GraphWebserver():
         self.config = config
         self.module_pool = module_pool
         self.block = block
+        self.include_sys = include_sys
         self.js_data = VisJSData()
 
         for c in self.config["routingtable"]:
-            self.js_data.addModule(instance_name=c.source_module,
-                                   module_name=self.config["modules"][c.source_module]["module"],
-                                   description=self.module_pool.getModule(c.source_module).description)
+            if not self.include_sys and any([
+                    c.source_module.startswith('_'),
+                    c.destination_module.startswith('_'),
+                    c.source_queue.startswith('_'),
+                    c.destination_queue.startswith('_')]):
+                continue
+            else:
+                self.js_data.addModule(instance_name=c.source_module,
+                                       module_name=self.config["modules"][c.source_module]["module"],
+                                       description=self.module_pool.getModule(c.source_module).description)
 
-            self.js_data.addModule(instance_name=c.destination_module,
-                                   module_name=self.config["modules"][c.destination_module]["module"],
-                                   description=self.module_pool.getModule(c.destination_module).description)
+                self.js_data.addModule(instance_name=c.destination_module,
+                                       module_name=self.config["modules"][c.destination_module]["module"],
+                                       description=self.module_pool.getModule(c.destination_module).description)
 
-            self.js_data.addQueue(c.source_module, c.source_queue)
-            self.js_data.addQueue(c.destination_module, c.destination_queue)
-            self.js_data.addEdge("%s.%s" % (c.source_module, c.source_queue), "%s.%s" % (c.destination_module, c.destination_queue))
+                self.js_data.addQueue(c.source_module, c.source_queue)
+                self.js_data.addQueue(c.destination_module, c.destination_queue)
+                self.js_data.addEdge("%s.%s" % (c.source_module, c.source_queue), "%s.%s" % (c.destination_module, c.destination_queue))
 
     def start(self):
 
