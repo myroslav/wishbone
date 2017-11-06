@@ -68,6 +68,10 @@ class QueueSelect(ProcessModule):
         - templates(list)([])*
            |  A list consisting out of template dicts as explained above.
 
+        - log_matching(bool)(False)
+           |  Whether to produce debug log messages for matches.
+           | Can be verbose hence it's configurable.
+
 
     Queues:
 
@@ -92,7 +96,7 @@ class QueueSelect(ProcessModule):
         "WISHBONE_INIT"
     ]
 
-    def __init__(self, actor_config, templates=[]):
+    def __init__(self, actor_config, templates=[], log_matching=False):
         ProcessModule.__init__(self, actor_config)
 
         self.pool.createQueue("inbox")
@@ -136,11 +140,12 @@ class QueueSelect(ProcessModule):
 
             if self.pool.hasQueue(queue_name):
 
-                self.logging.debug("Template '{template_name}' selected queue '{queue_name}' to route event '{event_id}' to.".format(
-                    template_name=template_name,
-                    queue_name=queue_name,
-                    event_id=event.get('uuid')
-                ))
+                if self.kwargs.log_matching:
+                    self.logging.debug("Template '{template_name}' selected queue '{queue_name}' to route event '{event_id}' to.".format(
+                        template_name=template_name,
+                        queue_name=queue_name,
+                        event_id=event.get('uuid')
+                    ))
 
                 # Construct and set the payload
                 queue_payload = {
@@ -155,11 +160,12 @@ class QueueSelect(ProcessModule):
                 self.submit(e, queue_name)
 
             else:
-                self.logging.debug("Template '{template_name}' selected non-existing queue '{queue_name}' to route event '{event_id}' to.".format(
-                    template_name=template_name,
-                    queue_name=queue_name,
-                    event_id=event.get('uuid')
-                ))
+                if self.kwargs.log_matching:
+                    self.logging.debug("Template '{template_name}' selected non-existing queue '{queue_name}' to route event '{event_id}' to.".format(
+                        template_name=template_name,
+                        queue_name=queue_name,
+                        event_id=event.get('uuid')
+                    ))
                 self.submit(event, "nomatch")
 
     def handleFileTemplate(self, event):
