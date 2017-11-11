@@ -44,13 +44,13 @@ class BootStrap():
     Parses command line arguments and bootstraps the Wishbone instance.
     '''
 
-    def __init__(self, description="Wishbone bootstrap server. Build composable event pipeline servers with minimal effort.", include_groups=[]):
+    def __init__(self, description="Pragmatic event processing servers.", include_groups=[]):
 
         parser = argparse.ArgumentParser(description=description)
         subparsers = parser.add_subparsers(dest='command')
         subparsers.required = True
 
-        start = subparsers.add_parser('start', description="Starts a Wishbone instance and detaches to the background.  Logs are written to syslog.")
+        start = subparsers.add_parser('start', description="Bootsraps a Wishbone instance.")
         start.add_argument('--config', type=str, dest='config', default='wishbone.cfg', help='The Wishbone bootstrap file to load.')
         start.add_argument('--frequency', type=int, dest='frequency', default=10, help='The metric frequency.')
         start.add_argument('--graph', action="store_true", help='When enabled starts a webserver on 8088 showing a graph of connected modules and queues.')
@@ -67,7 +67,8 @@ class BootStrap():
         stop = subparsers.add_parser('stop', description="Tries to gracefully stop the Wishbone instance.")
         stop.add_argument('--pid', type=str, dest='pid', default='wishbone.pid', help='The pidfile to use.')
 
-        subparsers.add_parser('list', description="Lists the available modules.")
+        list = subparsers.add_parser('list', description="Lists the available modules.")
+        list.add_argument('--namespace', type=str, dest='namespace', default="wishbone", help='The component namespace to query.')
 
         show = subparsers.add_parser('show', description="Shows information about a component.")
         show_group = show.add_mutually_exclusive_group(required=True)
@@ -217,7 +218,6 @@ class Dispatch():
         '''
 
         print((self.generateHeader()))
-        print("Available components:")
         print((ComponentManager().getComponentTable()))
 
     def show(self):
