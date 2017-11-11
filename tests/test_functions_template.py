@@ -102,3 +102,9 @@ def test_wishbone_function_template_regexFalse():
 
     f = ComponentManager().getComponentByName("wishbone.function.template.regex")()
     assert not f.get('.*$.', "hello")
+
+
+def test_wishbone_function_template_version():
+
+    f = ComponentManager().getComponentByName("wishbone.function.template.version")()
+    assert f.get() == '3.0.0'
