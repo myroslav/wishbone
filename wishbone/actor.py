@@ -264,7 +264,7 @@ class Actor(object):
 
     def preHook(self):
         '''
-        Is executed when module starts.
+        Is executed when module starts. Can be overriden by the user.
         '''
 
         self.logging.debug("Module has no preHook() method set.")
@@ -332,7 +332,7 @@ class Actor(object):
         '''
 
         self.__setProtocolMethod()
-
+        self.__postHook()
         if hasattr(self, "preHook"):
             self.logging.debug("preHook() found, executing")
             self.preHook()
@@ -579,6 +579,16 @@ class Actor(object):
                     })
                     self.submit(event, "_metrics")
             sleep(self.config.frequency)
+
+    def __postHook(self):
+        '''
+        Is always executed when the module starts.
+        '''
+
+        self.logging.debug("Following template functions are available: %s" % ", ".join(
+            self.config.template_functions.keys()
+            )
+        )
 
     def __setProtocolMethod(self):
         '''
