@@ -74,8 +74,9 @@ class STDOUT(OutputModule):
 
     Parameters:
 
-        - selection(str)("data")
+        - selection(str)(None)
            |  The event key to submit.
+           |  If ``None`` the complete event is selected.
 
         - payload(str)(None)
            |  The string to submit.
@@ -114,7 +115,7 @@ class STDOUT(OutputModule):
            |  Incoming events.
     '''
 
-    def __init__(self, actor_config, selection="data", payload=None, counter=False, prefix="", pid=False, colorize=False, foreground_color="WHITE", background_color="RESET", color_style="NORMAL"):
+    def __init__(self, actor_config, selection=None, payload=None, counter=False, prefix="", pid=False, colorize=False, foreground_color="WHITE", background_color="RESET", color_style="NORMAL"):
         Actor.__init__(self, actor_config)
 
         self.__validateInput(foreground_color, background_color, color_style)
