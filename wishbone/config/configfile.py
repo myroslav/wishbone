@@ -57,8 +57,15 @@ LOG_COLOR_TEMPLATE = '''
 
 class ConfigFile(object):
 
-    '''Generates a wishbone.router configuration object used to initialize a
+    '''
+    Generates a wishbone.router configuration object used to initialize a
     wishbone router object.
+
+    This config file also initializes following template functions:
+
+        - strftime()
+        - epoch()
+        - version()
 
     Args:
         filename (str): The filename of the configuration to load.
@@ -136,6 +143,8 @@ class ConfigFile(object):
         self.__validate(config)
         self.__validateRoutingTable(config)
 
+        self.__addDefaultTemplateFunctions()
+
         if "template_functions" in config:
             for function in config["template_functions"]:
                 self.addTemplateFunction(name=function, **config["template_functions"][function])
@@ -161,6 +170,15 @@ class ConfigFile(object):
             self.addConnection(sm, sq, dm, dq)
 
         getattr(self, "_setupLogging%s" % (self.logstyle.upper()))()
+
+    def __addDefaultTemplateFunctions(self):
+        '''
+        Adds template functions which should be available for each module.
+        '''
+
+        self.addTemplateFunction("strftime", "wishbone.function.template.strftime")
+        self.addTemplateFunction("epoch", "wishbone.function.template.epoch")
+        self.addTemplateFunction("version", "wishbone.function.template.version")
 
     def __addModule(self, name, module, arguments={}, description="", functions={}, protocol=None, event=False):
 
@@ -270,9 +288,6 @@ class ConfigFile(object):
         )
 
     def _setupLoggingSTDOUT(self):
-
-        self.addTemplateFunction("strftime", "wishbone.function.template.strftime")
-        self.addTemplateFunction("epoch", "wishbone.function.template.epoch")
 
         if not self.__queueConnected("_logs", "outbox"):
 
