@@ -102,6 +102,7 @@ class Dispatch():
         self.nocolor = kwargs.get("nocolor", False)
         self.fork = kwargs.get("fork", None)
         self.log_level = kwargs.get("log_level", None)
+        self.namespace = kwargs.get("namespace", None)
         self.routers = []
 
     def bootstrapBlock(self):
@@ -274,7 +275,6 @@ class Dispatch():
             logstyle = "SYSLOG"
         else:
             logstyle = "STDOUT"
-
 
         router_config = ConfigFile(
             filename=self.config,
