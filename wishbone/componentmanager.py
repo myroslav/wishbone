@@ -75,7 +75,7 @@ class ComponentManager():
     ]
 
     def __init__(self,
-                 namespace=["wishbone", "wishbone_contrib"],
+                 namespace=["wishbone", "wishbone_contrib", "wishbone_external"],
                  protocol_categories=["encode", "decode"],
                  module_categories=["flow", "input", "output", "process"],
                  function_categories=["template", "module"],
@@ -239,12 +239,12 @@ class ComponentManager():
         '''
 
         table = self.__getComponentTable()
-
         namespace_header = None
         component_type_header = None
         category_header = None
 
         for (namespace, component_type, category, name) in self.getComponentList():
+
             title = self.getComponentTitle(namespace, component_type, category, name)
             version = self.getComponentVersion(namespace, component_type, category, name)
 
@@ -252,6 +252,8 @@ class ComponentManager():
                 namespace = ""
             else:
                 namespace_header = namespace
+                component_type_header = None
+                category_header = None
 
             if component_type_header == component_type:
                 component_type = ""
