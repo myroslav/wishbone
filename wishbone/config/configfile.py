@@ -61,11 +61,36 @@ class ConfigFile(object):
     Generates a wishbone.router configuration object used to initialize a
     wishbone router object.
 
-    This config file also initializes following template functions:
+    This config generator has some tailered functionality which makes it
+    suitable when bootstrapping from CLI.
 
-        - strftime()
-        - epoch()
-        - version()
+    It does following automatic configurations:
+
+        - Initializes a ``wishbone.module.flow.funnel`` module called ``_logs``
+          which is connected to the ``_logs`` queue of all modules except if
+          this module has already been connected in the bootstrap file.
+
+        - Initializes a ``wishbone.module.flow.funnel`` module called ``_metrics``
+          which is connected to the ``_metrics`` queue of all modules except if
+          this module has already been connected in the bootstrap file.  The
+          ``_metrics`` modules is by default not connected to any other
+          modules.  The effect of this is that all metrics are dropped unless
+          the user connects a module for furhter processing the metrics.
+
+        - Adds a ``wishbone.module.flow.queueselect`` module called
+          ``_logs_filter`` responsible for dropping logs which log level do
+          not correspond to the define ``--log-level``
+
+        - Adds either a ``wishbone.module.output.stdout`` called
+          ``_logs_stdout`` module or ``wishbone.module.output.syslog`` module
+          called ``_logs_syslog`` and connects this instance to
+          ``_logs.outbox``.
+
+        - Initializes the following template functions and makes them
+          available to each initialized module:
+            - strftime()
+            - epoch()
+            - version()
 
     Args:
         filename (str): The filename of the configuration to load.
@@ -93,6 +118,18 @@ class ConfigFile(object):
         self.load(filename)
 
     def addModule(self, name, module, arguments={}, description="", functions={}, protocol=None, event=False):
+        '''
+        Adds a module to the configuration.
+
+        Args:
+            name (str): The module instance name
+            module (str): The module name
+            arguments (dict): The module variables
+            description (str): A description of the module instance
+            functions (dict): The module functions
+            protocol (str): The protocol to apply to the module
+            event (bool): Whether incoming or outgoing events need to be treated as full events.
+        '''
 
         if name.startswith('_'):
             raise Exception("Module instance names cannot start with _.")
@@ -100,6 +137,13 @@ class ConfigFile(object):
         self.__addModule(name, module, arguments, description, functions, protocol, event)
 
     def addTemplateFunction(self, name, function, arguments={}):
+        '''Adds a template funtion to the configuration.
+
+        Args:
+            name (str): The name of the function instance
+            function (str): The entry point name of the function
+            arguments (dict): The arguments to initiate the function class.
+        '''
 
         if name not in self.config["template_functions"]:
             self.config["template_functions"][name] = EasyDict({
@@ -110,15 +154,39 @@ class ConfigFile(object):
             raise Exception("Lookup instance name '%s' is already taken." % (name))
 
     def addModuleFunction(self, name, function, arguments={}):
+        '''
+        Adds a module function to the configuration.
+
+        Args:
+            name (str): The name of the function instance
+            function (str): The entry point name of the function
+            arguments (dict): The arguments to initiate the function class.
+        '''
 
         self.config["module_functions"][name] = EasyDict({"function": function, "arguments": arguments})
 
-    def addProtocol(self, name, protocol, arguments={}, event=False):
+    def addProtocol(self, name, protocol, arguments={}):
+        '''
+        Adds a protocol to the configuration
 
-        self.config["protocols"][name] = EasyDict({"protocol": protocol, "arguments": arguments, "event": event})
+        Args:
+            name (str): The name of the protocol instance
+            protcol (str): The entry point name of the protocol
+            arguments (dict): The arguments to initiate the protocol class.
+        '''
+
+        self.config["protocols"][name] = EasyDict({"protocol": protocol, "arguments": arguments})
 
     def addConnection(self, source_module, source_queue, destination_module, destination_queue):
+        '''
+        Adds connections between module queues.
 
+        Args:
+            source_module (str): The source module instance name
+            source_queue (str): The source module instance queue name
+            destination_module (str): The destination instance name
+            destination_queue (str): The destination instance queue name
+        '''
         connected = self.__queueConnected(source_module, source_queue)
 
         if not connected:
@@ -134,10 +202,19 @@ class ConfigFile(object):
             raise Exception("Cannot connect '%s.%s' to '%s.%s'. Reason: %s." % (source_module, source_queue, destination_module, destination_queue, connected))
 
     def dump(self):
+        '''
+        Dumps the configuration as an ``EasyDict`` instance.
+        '''
 
         return EasyDict(self.config)
 
     def load(self, filename):
+        '''
+        Loads a YAML bootstrap file.
+
+        Args:
+            filename (str): The filename to load.
+        '''
 
         config = self.__load(filename)
         self.__validate(config)
@@ -159,7 +236,6 @@ class ConfigFile(object):
                     name=protocol,
                     protocol=config["protocols"][protocol].get("protocol", None),
                     arguments=config["protocols"][protocol].get("arguments", {}),
-                    event=config["protocols"][protocol].get("event", False)
                 )
 
         for module in config["modules"]:

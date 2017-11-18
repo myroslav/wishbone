@@ -76,7 +76,7 @@ class Default(object):
     module to the other.
 
     Args:
-        config (obj): The router setup configuration.
+        config (EasyDict): The router setup configuration.
         size (int): The size of all queues.
         frequency (int)(1): The frequency at which metrics are produced.
         identification (wishbone): A string identifying this instance in logging.

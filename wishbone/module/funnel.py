@@ -27,9 +27,9 @@ from wishbone.module import FlowModule
 
 class Funnel(FlowModule):
 
-    '''**Funnel multiple incoming queues to 1 outgoing queue.**
+    '''**Funnel multiple incoming queues to one outgoing queue.**
 
-    Funnel multiple incoming queues to 1 outgoing queue.
+    Funnel multiple incoming queues to one outgoing queue.
 
     Parameters:
 

@@ -40,6 +40,8 @@ class QueueSelect(ProcessModule):
 
     A rule rule looks like this:
 
+    ::
+
         { "name": "name of the rule",
           "queue": "{{ 'queue_1,queue_one' if data.one == 1 else 'queue_2,queue_two' }}"
           "payload":

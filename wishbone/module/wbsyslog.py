@@ -31,7 +31,7 @@ import os
 
 class Syslog(OutputModule):
 
-    '''**Writes log events to syslog.**
+    '''**Submits event data to syslog.**
 
     Logevents have following format:
 

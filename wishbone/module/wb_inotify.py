@@ -78,6 +78,14 @@ class WBInotify(InputModule):
         - IN_Q_OVERFLOW
         - IN_UNMOUNT
 
+
+    Outgoing events have following format:
+
+    ::
+
+        {"path": "/tmp/test", "inotify_type": "IN_ACCESS"}
+
+
     Parameters:
 
         - initial_listing(bool)(True)

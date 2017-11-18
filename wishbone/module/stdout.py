@@ -64,7 +64,7 @@ class Format():
 
 class STDOUT(OutputModule):
 
-    '''**Prints incoming events to STDOUT.**
+    '''**Prints event data to STDOUT.**
 
     Prints incoming events to STDOUT. When <complete> is True,
     the complete event including headers is printed to STDOUT.

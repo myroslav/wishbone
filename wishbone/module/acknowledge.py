@@ -58,45 +58,47 @@ class Acknowledge(FlowModule):
 
     '''**Forwards or drops events by acknowleding values.**
 
-    This module stores the value of field `ack_id` from each incoming event.
-    Subsequent events with the same `ack_id` field value will be dropped until
-    the `ack_id` is removed by having it acknowledged.
+    This module stores the value of field ``ack_id`` from each incoming event.
+    Subsequent events with the same ``ack_id`` field value will be dropped
+    until it is removed by having it acknowledged.
 
-    `ack_id' can be acknowledged by sending the event to the `acknowledge`
-    queue.
+    The ``ack_id`` can be acknowledged by sending the event to the
+    ``acknowledge`` queue.
 
-    The `ack_id` field value should be an  unique value.
+    The ``ack_id`` field value should be an unique value.
 
-    Typically, downstream modules's <successful> and/or <failed> queues are
-    sending events to the <acknowledge> queue.
+    Typically, downstream modules's ``successful`` and/or ``failed`` queues are
+    sending events to the ``acknowledge`` queue.
 
-    Parameters:
 
-        - ack_id({data})*
-           |  A unique value identifying the event .
-           |  (Can be a dynamic value)
+    Module parameters:
 
+        :ack_id (data):
+             A unique value identifying the event.
 
     Queues:
 
-        - inbox
-           |  Incoming events
+        :inbox:
+            Incoming events
 
-        - outbox
-           |  Outgoing events
+        :outbox:
+            Outgoing events
 
-        - acknowledge
-           |  Acknowledge events
+        :acknowledge:
+            Acknowledge events
 
-        - dropped
-           |  Where events go to when unacknowledged
+        :dropped:
+            Where events go to when unacknowledged
 
 
-    Variables written in the event tmp.<name> namespace:
+    Event variables:
 
-        - tmp.<name>.ack_id
-           |  The location of the acknowledgement ID when coming in through
-           |  the inbox queue.
+        :tmp.<name>.ack_id:
+            The location of the acknowledgement ID when coming in through the
+            inbox queue.
+
+
+
 
     '''
 

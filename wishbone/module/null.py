@@ -28,7 +28,7 @@ from wishbone.module import OutputModule
 
 class Null(OutputModule):
 
-    '''**Purges incoming events.**
+    '''**Purges events.**
 
     Purges incoming events.
 
