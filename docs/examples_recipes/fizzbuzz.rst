@@ -1,6 +1,6 @@
-================
-Fizzbuzz Example
-================
+=====================
+HTTP Fizzbuzz Example
+=====================
 
 This `example` Wishbone server accepts `JSON` data over http on the ``/colors``
 endpoint and replies to the client with the defined ``response`` for it. The

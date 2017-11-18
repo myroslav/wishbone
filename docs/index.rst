@@ -1,7 +1,9 @@
 .. image:: pics/ascii.png
+
 .. image:: pics/GitHub-Mark-64px.png
     :align: right
     :target: https://github.com/smetj/wishbone
+
 **A pragmatists framework to build reactive event processing services.**
 
 .. warning::
@@ -45,7 +47,7 @@ which removes a maximum of boilerplate such as:
 When?
 -----
 
-Wishbone is probably going to be interesting for you when you need to tackle the:
+Wishbone is probably going to be helpful to you when you need to tackle the:
 
     "`If this happens I want that to happen ...`" - kind of problems.
 

@@ -21,15 +21,25 @@ Some of the characteristics of `output` modules are:
 * They do not alter the content of events flowing through except optionally
   setting some contextual data.
 
-----
+The builtin flow modules are:
 
-``Flow`` module bases :py:class:`wishbone.module.FlowModule`:
-
-.. autoclass:: wishbone.module.FlowModule
-    :members:
-    :show-inheritance:
-    :inherited-members:
-
-
-
++-----------------------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| Name                                                                                    | Description                                                             |
++=========================================================================================+=========================================================================+
+| :py:class:`wishbone.module.flow.acknowledge <wishbone.module.acknowledge.Acknowledge>`  | Forwards or drops events by acknowleding values.                        |
++-----------------------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| :py:class:`wishbone.module.flow.count <wishbone.module.count.Count>`                    | Pass or drop events based on the number of times an event value occurs. |
++-----------------------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| :py:class:`wishbone.module.flow.fanout <wishbone.module.fanout.Fanout>`                 | Forward each incoming message to all connected queues.                  |
++-----------------------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| :py:class:`wishbone.module.fresh.Fresh <wishbone.module.fresh.Fresh>`                   | Generates a new event unless an event came through in the last x time.  |
++-----------------------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| :py:class:`wishbone.module.funnel.Funnel <wishbone.module.funnel.Funnel>`               | Funnel multiple incoming queues to 1 outgoing queue.                    |
++-----------------------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| :py:class:`wishbone.module.flow.queueselect <wishbone.module.queueselect.QueueSelect>`  | Submits message to the queue defined by a rendered template.            |
++-----------------------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| :py:class:`wishbone.module.flow.roundrobin <wishbone.module.roundrobin.RoundRobin>`     | Round-robins incoming events to all connected queues.                   |
++-----------------------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| :py:class:`wishbone.module.flow.switch <wishbone.module.switch.Switch>`                 | Switch outgoing queues while forwarding events.                         |
++-----------------------------------------------------------------------------------------+-------------------------------------------------------------------------+
 

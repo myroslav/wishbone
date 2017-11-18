@@ -35,7 +35,14 @@ file or referred to using
 default Wishbone entrypoints are defined in its setup.py file. A component
 entrypoint is the same as the component name.
 
+
 An overview of available components can be viewed by using the ``list`` command:
+
+.. tip::
+
+    By default, the Wishbone executable includes the ``wishbone_contrib`` and
+    ``wishbone_external`` into its searchpath when searching for available
+    modules.
 
 
 .. code-block:: text

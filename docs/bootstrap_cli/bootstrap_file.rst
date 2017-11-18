@@ -8,6 +8,7 @@ It consists out of 5 sections:
 
 
 1. **`protocols`** section:
+
   .. _bootstrap_protocols:
 
   This section contains the protocols to initialize.Both protocol instances

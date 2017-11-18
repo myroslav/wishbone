@@ -5,10 +5,11 @@ Examples & Recipes
 
 .. toctree::
 
-    event_pipeline/index
-    writing_a_module/index
+    hello_world
     using_a_template_function
     creating_a_template_function
     using_a_module_function
     creating_a_module_function
     using_a_protocol_decoder
+    module_reading_data_disk
+    formatting_logs_and_metrics

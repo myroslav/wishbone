@@ -8,7 +8,7 @@ Events
     between module queues.*
 
 
-The `input modules`_ should initialize a :py:class:`wishbone.event.Event` instance to
+:ref:`Input <input>` modules should initialize a :py:class:`wishbone.event.Event` instance to
 encapsulate the data they receive or generate.
 
 :py:class:`wishbone.event.Event` is a simple class used for data representation
@@ -166,7 +166,7 @@ Cloning events keeps track of the previous UUIDs in order to track an event's or
     {'cloned': True, 'bulk': False, 'data': 'hello', 'errors': {}, 'tags': [], 'timestamp': 1505652318.7972248, 'tmp': {}, 'ttl': 254, 'uuid_previous': ['1b1e28a5-9ec7-484d-98db-4b645e69363a', '2caf2e0d-d2ec-4ced-ad82-c69859c450ed'], 'version': 1, 'uuid': '4b6525ef-e03a-4bd4-86ef-99f6c8cc4a03'}
 
 
-
+.. _bulk_events:
 Bulk Events
 -----------
 
@@ -200,10 +200,6 @@ Example:
 {'cloned': False, 'bulk': False, 'data': {'two': 2}, 'errors': {}, 'tags': [], 'timestamp': 1505674275.50755, 'tmp': {}, 'ttl': 254, 'uuid_previous': [], 'version': 1, 'uuid': '9d193329-6ad6-468a-ab53-4989c36627a3'}
 {'cloned': False, 'bulk': False, 'data': {'three': 3}, 'errors': {}, 'tags': [], 'timestamp': 1505674275.5078042, 'tmp': {}, 'ttl': 254, 'uuid_previous': [], 'version': 1, 'uuid': 'a203ff10-4361-41c2-b5e5-bee7075ecf4d'}
 >>>
-
-
-.. autoclass:: wishbone.event.Event
-    :members:
 
 
 .. _input modules: module%20types.html#input-modules

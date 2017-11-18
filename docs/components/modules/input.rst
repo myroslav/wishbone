@@ -21,9 +21,23 @@ Some of the characteristics of `input` modules are:
 * Contextual data about the incoming event can/should be stored under
   ``tmp.<module name>``.
 
+
+The builtin Wishbone Input modules:
+
++-----------------------------------------------------------------------------------+------------------------------------------------+
+| Name                                                                              | Description                                    |
++===================================================================================+================================================+
+| :py:class:`wishbone.module.input.cron <wishbone.module.cron.Cron>`                | Generates an event at the defined time.        |
++-----------------------------------------------------------------------------------+------------------------------------------------+
+| :py:class:`wishbone.module.input.generator <wishbone.module.generator.Generator>` | Generates an event at the chosen interval.     |
++-----------------------------------------------------------------------------------+------------------------------------------------+
+| :py:class:`wishbone.module.input.inotify <wishbone.module.wb_inotify.WBInotify>`  | Monitors one or more paths for inotify events. |
++-----------------------------------------------------------------------------------+------------------------------------------------+
+
+
 -----
 
-``Input`` module bases :py:class:`wishbone.module.InputModule`:
+``Input`` modules must base :py:class:`wishbone.module.InputModule`:
 
 .. autoclass:: wishbone.module.InputModule
     :members:
