@@ -70,10 +70,11 @@ class ModulePool():
 
 class Default(object):
 
-    '''The default Wishbone router.
+    '''
+    The default Wishbone router.
 
-    A Wishbone router is responsible for shoveling the messages from one
-    module to the other.
+    A Wishbone router is responsible for organising the event flow between
+    modules.
 
     Args:
         config (EasyDict): The router setup configuration.

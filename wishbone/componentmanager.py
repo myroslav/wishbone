@@ -35,31 +35,29 @@ from wishbone.protocol import Decode
 class ComponentManager():
 
     '''
-    Manages the Wishbone components found at the defined entrypoints.
+    Loads Wishbone components and information.
 
-    When initiated it indexes all the Wishbone components found in the available
-    <namespace>.<component_type>.<category> combinations.
+    When initiated it indexes all the Wishbone components found in the
+    available ``<namespace>.<component_type>.<category>`` combinations.
 
     A complete component reference would then be something like:
+    ``wishbone.module.process.modify``
 
-        <namespace>.<component_type>.<category>.<name>
-        wishbone.actor.process.modify
-
-    "wishbone" is the namespace
-    "actor" is the component type
-    "process" is the component category
-    "modify" is the name of the component
+    - ``wishbone`` is the namespace
+    - ``module`` is the component type
+    - ``process`` is the component category
+    - ``modify`` is the name of the component
 
     Note:
 
-        Wishbone namespaces are "wishbone" and "wishbone_contrib" where the
-        first holds the "official" builtin components whereas the latter should
-        be the namespace to register communitry contributed (external)
-        modules.
+        The default Wishbone namespaces are ``wishbone``, for the builtin
+        modules and ``wishbone_contrib`` or ``wishbone_external`` for
+        externally developed components.
 
         There exist 3 component types:
             - module
             - function
+            - protocol
 
     Args:
 

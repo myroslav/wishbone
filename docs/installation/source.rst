@@ -2,7 +2,7 @@
 Source
 ======
 
-.. tip::
+.. NOTE::
 
     You really should install Wishbone inside `virtualenv`_ so you do not mess with
     your OS Python packages.

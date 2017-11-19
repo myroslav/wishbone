@@ -18,7 +18,7 @@ The following yaml bootstrap file demonstrates how
 <wishbone.module.wb_inotify.WBInotify>` can be used to feed a module changes
 to files so it can respond to that accordingly:
 
-.. IMPORTANT::
+.. NOTE::
    Obviously the module receiving the inotify events needs to have specific support for that.
 
 

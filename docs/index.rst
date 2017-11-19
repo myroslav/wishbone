@@ -30,15 +30,15 @@ Why?
 ----
 
 The goal of the project is to provide an expressive and ops friendly framework
-which removes a maximum of boilerplate such as:
+which removes a maximum of boilerplate related to:
 
-* Easily include custom code
-* Process management
-* Error handling
-* Logging
-* Metrics
-* Full server setup using YAML config files
-
+* including custom code
+* plugin management
+* CLI process management
+* error handling
+* logging
+* metrics
+* instance configuration files
 
 .. image:: pics/separator_2.png
     :align: center

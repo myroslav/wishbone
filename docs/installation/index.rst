@@ -3,7 +3,7 @@ Installation
 ============
 
 
-.. important::
+.. NOTE::
 
     Wishbone is developed for python 3.6+
 
