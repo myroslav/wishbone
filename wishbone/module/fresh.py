@@ -61,8 +61,8 @@ class Fresh(FlowModule):
         - inbox
            |  Incoming events.
 
-        - inbox
-           |  Incoming events.
+        - outbox
+           |  Outgoing events.
 
         - timeout
            |  timeout and recovery events.

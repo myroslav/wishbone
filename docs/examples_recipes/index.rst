@@ -13,3 +13,4 @@ Examples & Recipes
     using_a_protocol_decoder
     module_reading_data_disk
     formatting_logs_and_metrics
+    dead_mans_switch

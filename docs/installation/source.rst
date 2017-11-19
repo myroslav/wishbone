@@ -9,6 +9,9 @@ Source
 
 Wishbone source can be downloaded from http://github.com/smetj/wishbone
 
+CI builds can be seen here: https://travis-ci.org/smetj/wishbone
+
+
 **Stable**
 
 Install the latest *stable* release from the **master** branch.

@@ -4,27 +4,43 @@
 Docker
 ======
 
+.. NOTE::
+
+    The foreseen containers are big.  I know they can be made much smaller but
+    the time I can spend on this is limited thus any help would be much
+    appreciated.
+
+
 Wishbone is also available as a Docker container.
 
 Pull the *smetj/wishbone* repository from
 https://registry.hub.docker.com/u/smetj/wishbone into your Docker environment:
 
+The docker files necessary to build Wishbone containers can be found here_.
+
 .. code-block:: sh
 
     $ docker pull smetj/wishbone
     $ docker images
-    REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
-    smetj/wishbone      development         e4acd2360be8        40 minutes ago      932.3 MB
-    smetj/wishbone      2.1.0               9bb81f6baa3a        4 months ago        756.2 MB
+    REPOSITORY                                            TAG                 IMAGE ID            CREATED              SIZE
+    smetj/wishbone                                        base_python         72c6cc524d53        26 minutes ago       778 MB
+    smetj/wishbone                                        develop             81e425eb6784        5 minutes ago       806 MB
+
+
+- The ``smetj/wishbone:base_python`` container is a Python3.6 based container
+  containing the necessary dependencies to install Wishbone.
+- The ``develop`` tag tracks the Wishbone develop_ branch.
+- The ``master`` tag tracks the Wishbone master_ branch.
 
 
 The container entrypoint is pointing to the wishbone executable:
 
 .. code-block:: sh
 
-    $ docker run -i -t smetj/wishbone:latest
-    usage: wishbone [-h] {show,stop,list,start,kill,debug} ...
-    wishbone: error: too few arguments
+    $ docker run -t -i smetj/wishbone:develop
+    usage: wishbone [-h] {start,stop,list,show} ...
+    wishbone: error: the following arguments are required: command
+
 
 
 The following commands runs a Wishbone container:
@@ -60,3 +76,7 @@ This example build file creates a Wishbone Docker container:
 
 .. toctree::
     extending_wishbone_containers
+
+.. here: https://github.com/smetj/wishbone_docker
+.. develop: https://github.com/smetj/wishbone/tree/develop
+.. develop: https://github.com/smetj/wishbone
