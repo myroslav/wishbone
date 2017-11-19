@@ -52,6 +52,11 @@ Consider following bootstrap file:
       - dead_mans_switch.timeout -> agent_alarms.inbox
 
 
+The diagram of this bootstrap file:
+
+.. image:: pics/dead_mans_switch.png
+
+
 The output looks like:
 
 .. code-block:: text
@@ -66,6 +71,8 @@ The output looks like:
     2017-11-19T15:58:19.3404+00:00 None[11971] informational input: 127.0.0.1 - - [2017-11-19 16:58:19] "PUT / HTTP/1.1" 200 103 0.000323
     Agent status :We didn't recieve the expected keepalive signal from agent X.
     2017-11-19T15:58:29.4267+00:00 wishbone[11971] informational dead_mans_switch: Timeout of 10 seconds expired.  Generated timeout event.
+
+
 
 
 Whenever data is submitted into Wishbone's webserver ``echo hello|curl -XPUT
